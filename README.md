@@ -1,9 +1,9 @@
-# 🌐 MQTT Web Explorer
+# 🌐 DockQTT
 
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![Node.js](https://img.shields.io/badge/node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
 ![Next.js](https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
-[![License](https://img.shields.io/github/license/BangerTech/mqtt-web-explorer?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/github/license/BangerTech/DockQTT?style=for-the-badge)](LICENSE)
 
 > 🐝 A modern web interface for exploring and managing MQTT topics and messages
 
@@ -12,7 +12,7 @@
 <img src="images/screenshot-light.png" width="49%" /> <img src="images/screenshot-dark.png" width="49%" />
 
 ## Table of Contents
-- [What is MQTT Web Explorer?](#what-is-mqtt-web-explorer)
+- [What is DockQTT?](#what-is-dockqtt)
 - [Features](#features)
 - [Setup & Requirements](#setup--requirements)
 - [Usage](#usage)
@@ -20,8 +20,8 @@
 - [Contributing](#contributing)
 - [License](#license)
 
-## What is MQTT Web Explorer?
-MQTT Web Explorer is a powerful tool for visualizing and interacting with MQTT topics and messages. It provides a user-friendly interface for connecting to MQTT brokers and managing IoT communications.
+## What is DockQTT?
+DockQTT is a powerful tool for visualizing and interacting with MQTT topics and messages. It provides a user-friendly interface for connecting to MQTT brokers and managing IoT communications.
 
 ### Features
 - 🔌 Connect to any MQTT broker
@@ -47,8 +47,8 @@ MQTT Web Explorer is a powerful tool for visualizing and interacting with MQTT t
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/BangerTech/mqtt-web-explorer.git
-   cd mqtt-web-explorer
+   git clone https://github.com/BangerTech/DockQTT.git
+   cd DockQTT
    ```
 2. Build and start the Docker container:
    ```bash
@@ -73,7 +73,7 @@ MQTT Web Explorer is a powerful tool for visualizing and interacting with MQTT t
    ```
 
 ## Support / Feedback
-Have any bugs or feature requests? Contact us [here](https://github.com/BangerTech/mqtt-web-explorer/issues) or click on the "Issues" tab in the GitHub repository!
+Have any bugs or feature requests? Contact us [here](https://github.com/BangerTech/DockQTT/issues) or click on the "Issues" tab in the GitHub repository!
 
 ## Contributing
 Fork the repository and create pull requests.
@@ -82,4 +82,4 @@ Fork the repository and create pull requests.
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Keywords
-`mqtt` `web-ui` `iot` `real-time` `dashboard` `nodejs` `nextjs` `docker` `mqtt-explorer` 
+`mqtt` `web-ui` `iot` `real-time` `dashboard` `nodejs` `nextjs` `docker` `dockqtt` 
