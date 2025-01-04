@@ -1,105 +1,85 @@
-# webDock
+# 🌐 MQTT Web Explorer
 
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
-![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
-![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
-[![License](https://img.shields.io/github/license/BangerTech/webDock?style=for-the-badge)](LICENSE)
+![Node.js](https://img.shields.io/badge/node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+![Next.js](https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
+[![License](https://img.shields.io/github/license/BangerTech/mqtt-web-explorer?style=for-the-badge)](LICENSE)
 
-![weDock Logo](images/webdock-logo.png)
-
-> 🐳 A modern web interface for managing Docker containers and services on Debian-based systems
+> 🐝 A modern web interface for exploring and managing MQTT topics and messages
 
 ## Screenshots
 
-<img src="images/screenshots/dashboard-light.png" width="49%" /> <img src="images/screenshots/dashboard-dark.png" width="49%" />
-
-<img src="images/screenshots/status.png" width="49%" /> <img src="images/screenshots/special.png" width="49%" />
+<img src="images/screenshot-light.png" width="49%" /> <img src="images/screenshot-dark.png" width="49%" />
 
 ## Table of Contents
-- [What is webDock?](#what-is-webdock)
+- [What is MQTT Web Explorer?](#what-is-mqtt-web-explorer)
+- [Features](#features)
 - [Setup & Requirements](#setup--requirements)
 - [Usage](#usage)
 - [Support / Feedback](#support--feedback)
 - [Contributing](#contributing)
-- [Sponsorship](#sponsorship)
+- [License](#license)
 
-## What is webDock?
-webDock is a powerful tool for managing and installing software on Debian-based systems. It provides a user-friendly interface for managing Docker containers and other software solutions.
+## What is MQTT Web Explorer?
+MQTT Web Explorer is a powerful tool for visualizing and interacting with MQTT topics and messages. It provides a user-friendly interface for connecting to MQTT brokers and managing IoT communications.
 
 ### Features
-- 🚀 One-click container deployment
-- 🔄 Automatic container updates
-- 📊 System monitoring and statistics
-- 🌙 Dark/Light theme support
-- 🔧 Easy configuration management
+- 🔌 Connect to any MQTT broker
+- 🔐 Support for secure connections (username/password)
+- 📊 Real-time display of all topics and messages
+- 🌙 Automatic Dark Mode
+- 🎯 Intuitive user interface
 - 📱 Responsive design
-- 🖥️ SSH Terminal access
-- 📁 SFTP File Explorer
-- ⏰ Cron Job Editor for automated system shutdown/wakeup
-
-### Supported Containers
-1. **openHAB** - Open Home Automation Bus
-2. **Home Assistant** - Open-source home automation platform
-3. **HomeBridge** - HomeKit support for non-native devices
-4. **RaspberryMatic** - Homematic central control unit
-5. **Zigbee2MQTT** - Zigbee devices to MQTT bridge
-6. **MQTT Broker** - Message broker for IoT communication
-7. **Dockge** - Docker compose stack manager
-8. **Portainer** - Container management UI
-9. **Grafana** - Analytics and monitoring platform
-10. **InfluxDB** - Time series database
-11. **Code Server** - VS Code in the browser
-12. **File Browser** - Web-based file manager
-13. **WatchYourLAN** - Network device monitoring
-14. **WhatsUpDocker** - Docker container monitoring
-15. **Frontail** - Web-based log viewer
-16. **Node Exporter** - Hardware and OS metrics exporter
-17. **Prometheus** - Monitoring and alerting toolkit
 
 ## Technologies
-- Python 3.9+
-- Flask web framework
+- Node.js
+- Next.js
+- MQTT.js
+- WebSocket
 - Docker & Docker Compose
-- JavaScript (ES6+)
-- YAML for configuration
 
 ## Setup & Requirements
-- **sudo** should be installed
-- **$USER** needs to be a member of the _sudo_ group
-- Add **%sudo  ALL=(ALL) NOPASSWD:ALL** with _visudo_
-- Docker + Docker-Compose are **required** for all container-based programs
+- Docker and Docker Compose are **required** for containerized deployment
 
 ## Usage
 
-### For X86 Systems:
-1. Navigate to your home directory:
+### With Docker
+
+1. Clone the repository:
    ```bash
-   cd $HOME
+   git clone https://github.com/BangerTech/mqtt-web-explorer.git
+   cd mqtt-web-explorer
    ```
-2. Download the setup script:
+2. Build and start the Docker container:
    ```bash
-   sudo wget https://raw.githubusercontent.com/BangerTech/webDock/main/setup_webui.sh
+   docker-compose up --build
    ```
-3. Make the script executable:
+3. Open your browser and navigate to `http://localhost:3000`.
+
+### Local Development
+
+1. Install dependencies:
    ```bash
-   sudo chmod +x setup_webui.sh
+   npm install
    ```
-4. Run the setup script:
+2. Start the development server:
    ```bash
-   sh setup_webui.sh
+   npm run dev
    ```
-5. Pick a program and follow the steps presented by the tool.
+3. For production build:
+   ```bash
+   npm run build
+   npm start
+   ```
 
 ## Support / Feedback
-Any bugs or feature requests? Contact me [here](https://github.com/bangertech) or click on the "Issues" tab in the GitHub repository!
+Have any bugs or feature requests? Contact us [here](https://github.com/BangerTech/mqtt-web-explorer/issues) or click on the "Issues" tab in the GitHub repository!
 
 ## Contributing
 Fork the repository and create pull requests.
 
-## Sponsorship
-
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FD26FHKRWS3US" target="_blank"><img src="https://pics.paypal.com/00/s/N2EwMzk4NzUtOTQ4Yy00Yjc4LWIwYmUtMTA3MWExNWIzYzMz/file.PNG" alt="SUPPORT" height="51"></a>
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Keywords
-`docker-management` `container-management` `web-ui` `docker-compose` `system-monitoring` 
-`home-automation` `iot` `smart-home` `monitoring` `dashboard` `debian` `raspberry-pi` 
+`mqtt` `web-ui` `iot` `real-time` `dashboard` `nodejs` `nextjs` `docker` `mqtt-explorer` 
