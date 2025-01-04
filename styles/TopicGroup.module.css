@@ -1,0 +1,100 @@
+.group {
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.groupHeader {
+  padding: 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #edf2f7;
+  transition: background-color 0.2s;
+}
+
+.groupHeader:hover {
+  background-color: #f7fafc;
+}
+
+.groupInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.groupIcon {
+  color: #4a5568;
+  font-size: 0.75rem;
+}
+
+.messageCount {
+  margin-left: auto;
+  background: #edf2f7;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: #4a5568;
+}
+
+.subGroups {
+  padding: 0.5rem;
+}
+
+.subGroup {
+  margin-bottom: 0.5rem;
+}
+
+.subGroupHeader {
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #4a5568;
+}
+
+.topics {
+  margin-left: 1.5rem;
+}
+
+.topic {
+  padding: 0.75rem;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 0.25rem;
+  transition: all 0.2s;
+}
+
+.topic:hover {
+  background: #f7fafc;
+}
+
+.topic.selected {
+  background: #ebf8ff;
+  border-left: 3px solid #4299e1;
+}
+
+.topicInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.topicName {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.topicCount {
+  font-size: 0.75rem;
+  color: #718096;
+}
+
+.lastMessage {
+  font-size: 0.875rem;
+  color: #718096;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+} 
