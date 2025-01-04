@@ -33,6 +33,22 @@ app.prepare().then(() => {
     let mqttClient = null;
     let isClosing = false;
     let connectionPromise = null;
+    let pingInterval = null;
+
+    // Ping/Pong zur Verbindungserhaltung
+    ws.isAlive = true;
+    ws.on('pong', () => {
+      ws.isAlive = true;
+    });
+
+    pingInterval = setInterval(() => {
+      if (ws.isAlive === false) {
+        logger.info('WebSocket connection is dead')
+        return ws.terminate();
+      }
+      ws.isAlive = false;
+      ws.ping(() => {});
+    }, 5000);
 
     // Definieren Sie die testConnection-Funktion hier
     const testConnection = (host, port) => {
@@ -119,6 +135,11 @@ app.prepare().then(() => {
 
             await connectionPromise
 
+            // Sende connected vor dem Subscribe
+            if (ws.readyState === WebSocket.OPEN && !isClosing) {
+              ws.send(JSON.stringify({ type: 'connected' }))
+            }
+
             // Setup message handler nach erfolgreicher Verbindung
             mqttClient.on('message', (topic, message) => {
               if (ws.readyState === WebSocket.OPEN && !isClosing) {
@@ -149,11 +170,6 @@ app.prepare().then(() => {
               })
             })
 
-            // Sende connected erst nach erfolgreicher Subscription
-            if (ws.readyState === WebSocket.OPEN && !isClosing) {
-              ws.send(JSON.stringify({ type: 'connected' }))
-            }
-
           } catch (error) {
             logger.error('MQTT Connection error:', error)
             if (ws.readyState === WebSocket.OPEN && !isClosing) {
@@ -180,6 +196,7 @@ app.prepare().then(() => {
 
     ws.on('close', async () => {
       isClosing = true;
+      clearInterval(pingInterval);
       logger.info('WebSocket Client disconnected')
       if (connectionPromise) {
         try {
@@ -197,6 +214,7 @@ app.prepare().then(() => {
 
     ws.on('error', (error) => {
       isClosing = true;
+      clearInterval(pingInterval);
       logger.error('WebSocket error:', error)
       if (mqttClient) {
         mqttClient.end(true)
