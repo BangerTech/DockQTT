@@ -20,8 +20,10 @@ export default function Home() {
       const timeout = setTimeout(() => {
         setError('Connection timeout')
         setConnecting(false)
-        ws.close()
-      }, 10000)
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close()
+        }
+      }, 15000)
 
       ws.onopen = () => {
         console.log('WebSocket connected')
@@ -68,6 +70,13 @@ export default function Home() {
         console.error('WebSocket error:', error)
         setError('Connection failed')
         setConnecting(false)
+      }
+
+      return () => {
+        clearTimeout(timeout)
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close()
+        }
       }
     } catch (error) {
       console.error('Connection error:', error)

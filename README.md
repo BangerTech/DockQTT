@@ -5,6 +5,8 @@
 ![Next.js](https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
 [![License](https://img.shields.io/github/license/BangerTech/DockQTT?style=for-the-badge)](LICENSE)
 
+![DockQTT Logo](images/dockqtt-logo.png)
+
 > 🐝 A modern web interface for exploring and managing MQTT topics and messages
 
 ## Screenshots
@@ -18,6 +20,7 @@
 - [Usage](#usage)
 - [Support / Feedback](#support--feedback)
 - [Contributing](#contributing)
+- [Sponsorship](#sponsorship)
 - [License](#license)
 
 ## What is DockQTT?
@@ -77,6 +80,10 @@ Have any bugs or feature requests? Contact us [here](https://github.com/BangerTe
 
 ## Contributing
 Fork the repository and create pull requests.
+
+## Sponsorship
+
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=FD26FHKRWS3US" target="_blank"><img src="https://pics.paypal.com/00/s/N2EwMzk4NzUtOTQ4Yy00Yjc4LWIwYmUtMTA3MWExNWIzYzMz/file.PNG" alt="SUPPORT" height="51"></a>
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

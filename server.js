@@ -31,7 +31,8 @@ app.prepare().then(() => {
   wss.on('connection', (ws) => {
     logger.info('WebSocket Client connected')
     let mqttClient = null;
-    let isClosing = false;  // Flag für kontrolliertes Schließen
+    let isClosing = false;
+    let connectionPromise = null;
 
     // Definieren Sie die testConnection-Funktion hier
     const testConnection = (host, port) => {
@@ -67,23 +68,12 @@ app.prepare().then(() => {
           try {
             const { host, port, username, password } = data.config
             
-            // Validiere die Eingaben
             if (!host || !port) {
               throw new Error('Host and port are required')
             }
 
             // Teste die Verbindung zuerst
-            try {
-              await testConnection(host, port)
-            } catch (err) {
-              if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ 
-                  type: 'error', 
-                  message: `Cannot reach broker: ${err.message}` 
-                }))
-              }
-              return
-            }
+            await testConnection(host, port)
 
             const brokerUrl = `mqtt://${host.trim()}:${port.trim()}`
             logger.info(`Attempting to connect to MQTT broker at ${brokerUrl}`)
@@ -109,27 +99,27 @@ app.prepare().then(() => {
             // Erstelle neue MQTT-Verbindung
             mqttClient = mqtt.connect(brokerUrl, options)
 
-            // Setup MQTT event handlers first
-            mqttClient.on('error', (err) => {
-              logger.error('MQTT Error:', err)
-              if (ws.readyState === WebSocket.OPEN && !isClosing) {
-                ws.send(JSON.stringify({ 
-                  type: 'error', 
-                  message: `Connection error: ${err.message}` 
-                }))
-              }
+            // Warte auf erfolgreiche Verbindung
+            connectionPromise = new Promise((resolve, reject) => {
+              const connectionTimeout = setTimeout(() => {
+                reject(new Error('Connection timeout'))
+              }, 10000)
+
+              mqttClient.once('connect', () => {
+                clearTimeout(connectionTimeout)
+                logger.info('Successfully connected to MQTT broker')
+                resolve()
+              })
+
+              mqttClient.once('error', (err) => {
+                clearTimeout(connectionTimeout)
+                reject(err)
+              })
             })
 
-            mqttClient.on('offline', () => {
-              logger.info('MQTT Client offline')
-              if (ws.readyState === WebSocket.OPEN && !isClosing) {
-                ws.send(JSON.stringify({ 
-                  type: 'error', 
-                  message: 'Connection lost' 
-                }))
-              }
-            })
+            await connectionPromise
 
+            // Setup message handler nach erfolgreicher Verbindung
             mqttClient.on('message', (topic, message) => {
               if (ws.readyState === WebSocket.OPEN && !isClosing) {
                 const messageStr = message.toString()
@@ -147,32 +137,22 @@ app.prepare().then(() => {
               }
             })
 
-            // Warte auf erfolgreiche Verbindung
+            // Subscribe zu Topics
             await new Promise((resolve, reject) => {
-              const connectionTimeout = setTimeout(() => {
-                reject(new Error('Connection timeout'))
-              }, 5000)
-
-              mqttClient.once('connect', () => {
-                clearTimeout(connectionTimeout)
-                logger.info('Successfully connected to MQTT broker')
-                
-                mqttClient.subscribe('#', (err) => {
-                  if (err) {
-                    reject(new Error('Failed to subscribe to topics'))
-                    return
-                  }
-                  logger.info('Successfully subscribed to all topics')
-                  
-                  if (ws.readyState === WebSocket.OPEN && !isClosing) {
-                    ws.send(JSON.stringify({ type: 'connected' }))
-                    resolve()
-                  } else {
-                    reject(new Error('WebSocket closed during connection'))
-                  }
-                })
+              mqttClient.subscribe('#', (err) => {
+                if (err) {
+                  reject(new Error('Failed to subscribe to topics'))
+                  return
+                }
+                logger.info('Successfully subscribed to all topics')
+                resolve()
               })
             })
+
+            // Sende connected erst nach erfolgreicher Subscription
+            if (ws.readyState === WebSocket.OPEN && !isClosing) {
+              ws.send(JSON.stringify({ type: 'connected' }))
+            }
 
           } catch (error) {
             logger.error('MQTT Connection error:', error)
@@ -181,6 +161,9 @@ app.prepare().then(() => {
                 type: 'error', 
                 message: `Connection failed: ${error.message}` 
               }))
+            }
+            if (mqttClient) {
+              mqttClient.end(true)
             }
           }
         }
@@ -195,9 +178,16 @@ app.prepare().then(() => {
       }
     })
 
-    ws.on('close', () => {
+    ws.on('close', async () => {
       isClosing = true;
       logger.info('WebSocket Client disconnected')
+      if (connectionPromise) {
+        try {
+          await connectionPromise
+        } catch (error) {
+          logger.error('Connection promise rejected during close:', error)
+        }
+      }
       if (mqttClient) {
         mqttClient.end(true, () => {
           logger.info('MQTT Client disconnected')
