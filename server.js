@@ -23,6 +23,31 @@ const logger = winston.createLogger({
   ],
 })
 
+// Define the testConnection function
+const testConnection = (host, port) => {
+  return new Promise((resolve, reject) => {
+    const client = new net.Socket()
+    client.setTimeout(5000)
+    
+    client.on('error', (err) => {
+      logger.error('TCP connection test failed:', err)
+      reject(err)
+    })
+
+    client.on('timeout', () => {
+      logger.error('TCP connection test timeout')
+      client.destroy()
+      reject(new Error('Connection timeout'))
+    })
+
+    client.connect(parseInt(port), host, () => {
+      logger.info('TCP connection test successful')
+      client.destroy()
+      resolve()
+    })
+  })
+}
+
 // Prepare Next.js
 app.prepare().then(() => {
   const server = express()
@@ -31,193 +56,81 @@ app.prepare().then(() => {
   wss.on('connection', (ws) => {
     logger.info('WebSocket Client connected')
     let mqttClient = null;
-    let isClosing = false;
-    let connectionPromise = null;
-    let pingInterval = null;
 
-    // Ping/Pong zur Verbindungserhaltung
-    ws.isAlive = true;
-    ws.on('pong', () => {
-      ws.isAlive = true;
-    });
-
-    pingInterval = setInterval(() => {
-      if (ws.isAlive === false) {
-        logger.info('WebSocket connection is dead')
-        return ws.terminate();
+    // Einfache Verbindungsfunktion
+    const connectMqtt = ({ host, port }) => {
+      // Beende vorherige Verbindung
+      if (mqttClient) {
+        mqttClient.end(true)
       }
-      ws.isAlive = false;
-      ws.ping(() => {});
-    }, 5000);
 
-    // Definieren Sie die testConnection-Funktion hier
-    const testConnection = (host, port) => {
-      return new Promise((resolve, reject) => {
-        const client = new net.Socket()
-        client.setTimeout(5000)
+      // Erstelle neue Verbindung
+      mqttClient = mqtt.connect(`mqtt://${host}:${port}`)
+
+      // Verbindung erfolgreich
+      mqttClient.on('connect', () => {
+        logger.info('MQTT Connected')
         
-        client.on('error', (err) => {
-          logger.error('TCP connection test failed:', err)
-          reject(err)
+        // Subscribe zu allen Topics
+        mqttClient.subscribe('#', (err) => {
+          if (err) {
+            logger.error('Subscribe error:', err)
+            return
+          }
+          
+          // Informiere Frontend
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'connected' }))
+            logger.info('Sent connected status to frontend')
+          }
         })
+      })
 
-        client.on('timeout', () => {
-          logger.error('TCP connection test timeout')
-          client.destroy()
-          reject(new Error('Connection timeout'))
-        })
+      // Empfange Nachrichten
+      mqttClient.on('message', (topic, message) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          try {
+            ws.send(JSON.stringify({
+              type: 'topics',
+              data: {
+                [topic]: {
+                  message: message.toString(),
+                  timestamp: Date.now()
+                }
+              }
+            }))
+            logger.info(`Sent message from topic ${topic} to frontend`)
+          } catch (err) {
+            logger.error('Failed to send message to frontend:', err)
+          }
+        }
+      })
 
-        client.connect(parseInt(port), host, () => {
-          logger.info('TCP connection test successful')
-          client.destroy()
-          resolve()
-        })
+      // Fehlerbehandlung
+      mqttClient.on('error', (err) => {
+        ws.send(JSON.stringify({ 
+          type: 'error', 
+          message: 'MQTT connection failed' 
+        }))
       })
     }
 
-    ws.on('message', async (message) => {
+    // Empfange Verbindungsanfrage vom Frontend
+    ws.on('message', (message) => {
       try {
         const data = JSON.parse(message)
-        logger.info('Received message:', data)
-        
-        if (data.type === 'connect' && !isClosing) {
-          try {
-            const { host, port, username, password } = data.config
-            
-            if (!host || !port) {
-              throw new Error('Host and port are required')
-            }
-
-            // Teste die Verbindung zuerst
-            await testConnection(host, port)
-
-            const brokerUrl = `mqtt://${host.trim()}:${port.trim()}`
-            logger.info(`Attempting to connect to MQTT broker at ${brokerUrl}`)
-
-            // Beende vorherige Verbindung
-            if (mqttClient) {
-              mqttClient.end(true)
-              mqttClient = null
-            }
-
-            // MQTT-Verbindungsoptionen
-            const options = {
-              username: username || undefined,
-              password: password || undefined,
-              keepalive: 60,
-              clean: true,
-              reconnectPeriod: 1000,
-              connectTimeout: 10000,
-              rejectUnauthorized: false,
-              clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
-            }
-
-            // Erstelle neue MQTT-Verbindung
-            mqttClient = mqtt.connect(brokerUrl, options)
-
-            // Warte auf erfolgreiche Verbindung
-            connectionPromise = new Promise((resolve, reject) => {
-              const connectionTimeout = setTimeout(() => {
-                reject(new Error('Connection timeout'))
-              }, 10000)
-
-              mqttClient.once('connect', () => {
-                clearTimeout(connectionTimeout)
-                logger.info('Successfully connected to MQTT broker')
-                resolve()
-              })
-
-              mqttClient.once('error', (err) => {
-                clearTimeout(connectionTimeout)
-                reject(err)
-              })
-            })
-
-            await connectionPromise
-
-            // Sende connected vor dem Subscribe
-            if (ws.readyState === WebSocket.OPEN && !isClosing) {
-              ws.send(JSON.stringify({ type: 'connected' }))
-            }
-
-            // Setup message handler nach erfolgreicher Verbindung
-            mqttClient.on('message', (topic, message) => {
-              if (ws.readyState === WebSocket.OPEN && !isClosing) {
-                const messageStr = message.toString()
-                logger.info(`Received MQTT message on ${topic}:`, messageStr)
-                ws.send(JSON.stringify({
-                  type: 'topics',
-                  data: {
-                    [topic]: {
-                      message: messageStr,
-                      timestamp: Date.now(),
-                      count: 1
-                    }
-                  }
-                }))
-              }
-            })
-
-            // Subscribe zu Topics
-            await new Promise((resolve, reject) => {
-              mqttClient.subscribe('#', (err) => {
-                if (err) {
-                  reject(new Error('Failed to subscribe to topics'))
-                  return
-                }
-                logger.info('Successfully subscribed to all topics')
-                resolve()
-              })
-            })
-
-          } catch (error) {
-            logger.error('MQTT Connection error:', error)
-            if (ws.readyState === WebSocket.OPEN && !isClosing) {
-              ws.send(JSON.stringify({ 
-                type: 'error', 
-                message: `Connection failed: ${error.message}` 
-              }))
-            }
-            if (mqttClient) {
-              mqttClient.end(true)
-            }
-          }
+        if (data.type === 'connect') {
+          connectMqtt(data.config)
         }
       } catch (error) {
-        logger.error('Error handling message:', error)
-        if (ws.readyState === WebSocket.OPEN && !isClosing) {
-          ws.send(JSON.stringify({ 
-            type: 'error', 
-            message: error.message 
-          }))
-        }
+        logger.error('Error:', error)
       }
     })
 
-    ws.on('close', async () => {
-      isClosing = true;
-      clearInterval(pingInterval);
-      logger.info('WebSocket Client disconnected')
-      if (connectionPromise) {
-        try {
-          await connectionPromise
-        } catch (error) {
-          logger.error('Connection promise rejected during close:', error)
-        }
-      }
+    // Cleanup bei Verbindungsende
+    ws.on('close', () => {
       if (mqttClient) {
-        mqttClient.end(true, () => {
-          logger.info('MQTT Client disconnected')
-        })
-      }
-    })
-
-    ws.on('error', (error) => {
-      isClosing = true;
-      clearInterval(pingInterval);
-      logger.error('WebSocket error:', error)
-      if (mqttClient) {
-        mqttClient.end(true)
+        mqttClient.end()
       }
     })
   })

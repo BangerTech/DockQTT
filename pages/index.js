@@ -10,79 +10,49 @@ export default function Home() {
   const [connecting, setConnecting] = useState(false)
 
   const handleConnect = (config) => {
-    try {
-      setConnecting(true)
-      setError(null)
-      
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const ws = new WebSocket(`${protocol}//${window.location.host}`)
-      
-      const timeout = setTimeout(() => {
-        setError('Connection timeout')
-        setConnecting(false)
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.close()
-        }
-      }, 15000)
+    setConnecting(true);
+    setError(null);
 
-      ws.onopen = () => {
-        console.log('WebSocket connected')
-        ws.send(JSON.stringify({
-          type: 'connect',
-          config: config
-        }))
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      ws.send(JSON.stringify({
+        type: 'connect',
+        config: config
+      }));
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('Received message:', data);
+
+      if (data.type === 'connected') {
+        console.log('Connection established');
+        setConnected(true);
+        setWsClient(ws);
+        setError(null);
+        setConnecting(false);
+      } else if (data.type === 'topics') {
+        console.log('Received topic update:', data.data);
+        setTopics(prev => ({
+          ...prev,
+          ...data.data
+        }));
+      } else if (data.type === 'error') {
+        console.error('Error:', data.message);
+        setError(data.message);
+        setConnected(false);
+        setConnecting(false);
       }
+    };
 
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data)
-        console.log('Received:', data)
-
-        if (data.type === 'connected') {
-          clearTimeout(timeout)
-          setConnected(true)
-          setWsClient(ws)
-          setError(null)
-          setConnecting(false)
-        } else if (data.type === 'topics') {
-          setTopics(prev => ({
-            ...prev,
-            ...data.data
-          }))
-        } else if (data.type === 'error') {
-          clearTimeout(timeout)
-          setError(data.message)
-          setConnected(false)
-          setConnecting(false)
-          ws.close()
-        }
-      }
-
-      ws.onclose = () => {
-        clearTimeout(timeout)
-        console.log('WebSocket disconnected')
-        setConnected(false)
-        setWsClient(null)
-        setConnecting(false)
-      }
-
-      ws.onerror = (error) => {
-        clearTimeout(timeout)
-        console.error('WebSocket error:', error)
-        setError('Connection failed')
-        setConnecting(false)
-      }
-
-      return () => {
-        clearTimeout(timeout)
-        if (ws.readyState === WebSocket.OPEN) {
-          ws.close()
-        }
-      }
-    } catch (error) {
-      console.error('Connection error:', error)
-      setError(error.message)
-      setConnecting(false)
-    }
+    ws.onclose = () => {
+      setConnected(false);
+      setWsClient(null);
+      setConnecting(false);
+    };
   }
 
   return (
