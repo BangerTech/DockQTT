@@ -1,38 +1,75 @@
 import React from 'react';
-import {
-  Box,
-  Card,
-  Typography,
-  ToggleButtonGroup,
-  ToggleButton,
-} from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
 
-type ViewMode = 'raw' | 'json' | 'table';
+interface MessageViewerProps {
+  topic: string | null;
+  message: string | null;
+  timestamp?: number;
+}
 
-const MessageViewer = () => {
-  const [viewMode, setViewMode] = React.useState<ViewMode>('json');
+export default function MessageViewer({ topic, message, timestamp }: MessageViewerProps) {
+  const isJson = message && message.startsWith('{');
+  const formattedMessage = isJson ? JSON.stringify(JSON.parse(message), null, 2) : message;
 
   return (
-    <Card sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h6">Messages</Typography>
-        <ToggleButtonGroup
-          value={viewMode}
-          exclusive
-          onChange={(_, newMode) => newMode && setViewMode(newMode)}
-          size="small"
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {topic ? (
+        <>
+          <Box sx={{ p: 3, borderBottom: 1, borderColor: 'divider' }}>
+            <Typography variant="overline" color="text.secondary">
+              Topic
+            </Typography>
+            <Typography variant="h6" sx={{ mt: 1, fontFamily: 'monospace' }}>
+              {topic}
+            </Typography>
+            {timestamp && (
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                Letzte Aktualisierung: {new Date(timestamp).toLocaleString('de-DE')}
+              </Typography>
+            )}
+          </Box>
+          
+          <Box sx={{ p: 3, flexGrow: 1, overflow: 'auto' }}>
+            <Typography variant="overline" color="text.secondary">
+              Message
+            </Typography>
+            <Paper 
+              variant="outlined" 
+              sx={{ 
+                mt: 2,
+                p: 2,
+                bgcolor: 'grey.50',
+                fontFamily: 'monospace',
+                fontSize: '0.875rem',
+                overflow: 'auto',
+                maxHeight: 'calc(100vh - 400px)'
+              }}
+            >
+              <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {formattedMessage}
+              </pre>
+            </Paper>
+          </Box>
+        </>
+      ) : (
+        <Box 
+          sx={{ 
+            height: '100%', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            flexDirection: 'column',
+            color: 'text.secondary'
+          }}
         >
-          <ToggleButton value="raw">Raw</ToggleButton>
-          <ToggleButton value="json">JSON</ToggleButton>
-          <ToggleButton value="table">Table</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
-      
-      <Box sx={{ height: 'calc(100vh - 200px)', overflow: 'auto' }}>
-        {/* Message content will be rendered here */}
-      </Box>
-    </Card>
+          <Typography variant="h6">
+            Kein Topic ausgewählt
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Wählen Sie ein Topic aus der linken Seitenleiste aus
+          </Typography>
+        </Box>
+      )}
+    </Box>
   );
-};
-
-export default MessageViewer; 
+} 

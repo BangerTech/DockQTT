@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
-import { TreeView, TreeItem } from '@mui/lab';
+import React, { useMemo, useState } from 'react';
+import { Box, Typography, List, ListItem, ListItemButton, ListItemText, Collapse, IconButton, Stack, Tooltip, Chip } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { Box, Paper, Typography } from '@mui/material';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import { useTheme } from '@mui/material/styles';
 
 interface TopicTreeProps {
   topics: {
@@ -22,10 +23,140 @@ interface TopicNode {
   isLeaf?: boolean;
 }
 
-export default function TopicTree({ topics, selectedTopic, onSelectTopic }: TopicTreeProps) {
-  console.log('TopicTree render with topics:', topics);
-  console.log('Selected topic:', selectedTopic);
+const TreeNode = ({ node, level = 0, selectedTopic, onSelectTopic, topics }: {
+  node: TopicNode;
+  level?: number;
+  selectedTopic: string | null;
+  onSelectTopic: (topic: string) => void;
+  topics: Record<string, { message: string; timestamp: number }>;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const hasMessage = node.isLeaf && topics[node.id]?.message;
+  const message = hasMessage ? topics[node.id].message : null;
+  const theme = useTheme();
 
+  return (
+    <Box>
+      <ListItem 
+        disablePadding 
+        sx={{ 
+          pl: level * 1.5,
+          borderLeft: level > 0 ? `2px solid ${theme.palette.divider}` : 'none',
+          transition: 'all 0.2s'
+        }}
+      >
+        <ListItemButton
+          onClick={() => {
+            if (node.children.length > 0) {
+              setIsExpanded(!isExpanded);
+            } else if (node.isLeaf) {
+              onSelectTopic(node.id);
+            }
+          }}
+          selected={selectedTopic === node.id}
+          sx={{
+            borderRadius: 2,
+            my: 0.3,
+            transition: 'all 0.2s',
+            '&.Mui-selected': {
+              bgcolor: 'primary.main',
+              color: 'common.white',
+              boxShadow: theme.shadows[3],
+              '&:hover': {
+                bgcolor: 'primary.dark',
+              }
+            },
+            '&:hover': {
+              bgcolor: 'action.hover',
+              transform: 'translateX(4px)'
+            }
+          }}
+        >
+          <Stack direction="row" spacing={1} alignItems="center" width="100%">
+            {node.children.length > 0 ? (
+              <IconButton
+                size="small"
+                sx={{
+                  transition: 'transform 0.2s',
+                  transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)'
+                }}
+              >
+                <ExpandMoreIcon fontSize="small" />
+              </IconButton>
+            ) : (
+              <Box sx={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FiberManualRecordIcon sx={{ fontSize: 8, color: hasMessage ? 'success.main' : 'text.disabled' }} />
+              </Box>
+            )}
+            
+            <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+              <Typography 
+                variant="body2"
+                sx={{ 
+                  fontWeight: node.children.length > 0 ? 600 : 400,
+                  color: 'inherit'
+                }}
+              >
+                {node.name}
+              </Typography>
+              {hasMessage && (
+                <Tooltip title={message}>
+                  <Typography 
+                    variant="caption"
+                    sx={{ 
+                      display: 'block',
+                      color: 'inherit',
+                      opacity: 0.7,
+                      fontSize: '0.7rem',
+                      mt: 0.5,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {message?.substring(0, 40)}
+                    {message?.length > 40 ? '...' : ''}
+                  </Typography>
+                </Tooltip>
+              )}
+            </Box>
+
+            {node.isLeaf && topics[node.id]?.timestamp && (
+              <Chip
+                size="small"
+                label={new Date(topics[node.id].timestamp).toLocaleTimeString()}
+                sx={{ 
+                  height: 20,
+                  '& .MuiChip-label': {
+                    px: 1,
+                    fontSize: '0.65rem'
+                  }
+                }}
+              />
+            )}
+          </Stack>
+        </ListItemButton>
+      </ListItem>
+      
+      <Collapse in={isExpanded}>
+        <List disablePadding>
+          {node.children.map(child => (
+            <TreeNode
+              key={child.id}
+              node={child}
+              level={level + 1}
+              selectedTopic={selectedTopic}
+              onSelectTopic={onSelectTopic}
+              topics={topics}
+            />
+          ))}
+        </List>
+      </Collapse>
+    </Box>
+  );
+};
+
+export default function TopicTree({ topics, selectedTopic, onSelectTopic }: TopicTreeProps) {
   const topicTree = useMemo(() => {
     const buildTree = () => {
       const tree: TopicNode[] = [];
@@ -62,52 +193,17 @@ export default function TopicTree({ topics, selectedTopic, onSelectTopic }: Topi
     return result;
   }, [topics]);
 
-  const renderTree = (nodes: TopicNode[]) => {
-    return nodes.map((node) => (
-      <TreeItem
-        key={node.id}
-        nodeId={node.id}
-        label={node.name}
-        onClick={() => {
-          console.log('Clicked node:', node.id);
-          node.isLeaf && onSelectTopic(node.id);
-        }}
-        sx={{
-          '& .MuiTreeItem-content': {
-            padding: '4px 8px',
-            '&.Mui-selected': {
-              backgroundColor: 'primary.main',
-              color: 'primary.contrastText'
-            },
-            '&:hover': {
-              backgroundColor: 'action.hover'
-            }
-          }
-        }}
-      >
-        {Array.isArray(node.children) && node.children.length > 0 && renderTree(node.children)}
-      </TreeItem>
-    ));
-  };
-
-  console.log('TreeView props:', {
-    expanded: topicTree.map(node => node.id),
-    selected: selectedTopic || '',
-    children: topicTree.length
-  });
-
   return (
     <Box sx={{ 
       height: '100%',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      bgcolor: 'background.paper'
     }}>
-      {/* Header */}
       <Box sx={{ 
         p: 2, 
         borderBottom: 1, 
-        borderColor: 'divider',
-        bgcolor: 'background.default'
+        borderColor: 'divider'
       }}>
         <Typography 
           variant="subtitle2" 
@@ -118,50 +214,26 @@ export default function TopicTree({ topics, selectedTopic, onSelectTopic }: Topi
             letterSpacing: '0.1em'
           }}
         >
-          Topics
+          Topics ({Object.keys(topics).length})
         </Typography>
       </Box>
 
-      {/* Tree View */}
       <Box sx={{ 
         flexGrow: 1,
         overflow: 'auto',
-        px: 1,
-        py: 2
+        p: 2
       }}>
-        <TreeView
-          defaultCollapseIcon={<ExpandMoreIcon />}
-          defaultExpandIcon={<ChevronRightIcon />}
-          expanded={topicTree.map(node => node.id)}
-          selected={selectedTopic || ''}
-          sx={{
-            '& .MuiTreeItem-root': {
-              '& .MuiTreeItem-content': {
-                py: 0.75,
-                px: 1,
-                borderRadius: 1,
-                '&.Mui-selected': {
-                  bgcolor: 'primary.main',
-                  color: 'primary.contrastText',
-                  '& .MuiTypography-root': {
-                    color: 'inherit'
-                  }
-                },
-                '&:hover:not(.Mui-selected)': {
-                  bgcolor: 'action.hover'
-                }
-              },
-              '& .MuiTreeItem-group': {
-                ml: 2,
-                borderLeft: 1,
-                borderColor: 'divider',
-                pt: 0.5
-              }
-            }
-          }}
-        >
-          {renderTree(topicTree)}
-        </TreeView>
+        <List disablePadding>
+          {topicTree.map(node => (
+            <TreeNode
+              key={node.id}
+              node={node}
+              selectedTopic={selectedTopic}
+              onSelectTopic={onSelectTopic}
+              topics={topics}
+            />
+          ))}
+        </List>
       </Box>
     </Box>
   );

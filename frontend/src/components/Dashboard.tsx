@@ -141,20 +141,22 @@ export default function Dashboard() {
             bgcolor: 'background.paper',
             borderRight: 1,
             borderColor: 'divider',
-            overflow: 'hidden'
+            height: '100vh'
           },
         }}
       >
         <Toolbar sx={{ minHeight: TOOLBAR_HEIGHT }} />
         <Box sx={{ 
           height: `calc(100vh - ${TOOLBAR_HEIGHT}px)`,
-          display: 'flex',
-          flexDirection: 'column'
+          overflow: 'hidden'
         }}>
           <TopicTree 
             topics={topics} 
             selectedTopic={selectedTopic}
-            onSelectTopic={setSelectedTopic}
+            onSelectTopic={(topic) => {
+              console.log('Selected topic:', topic);
+              setSelectedTopic(topic);
+            }}
           />
         </Box>
       </Drawer>
