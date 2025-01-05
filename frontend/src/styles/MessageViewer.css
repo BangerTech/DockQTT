@@ -1,0 +1,32 @@
+.message-formatter pre {
+  margin: 0;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.message-formatter.dark pre {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.message-formatter .json-key {
+  color: #d63384;
+}
+
+.message-formatter .json-string {
+  color: #198754;
+}
+
+.message-formatter .json-number {
+  color: #0d6efd;
+}
+
+.message-formatter .json-boolean {
+  color: #dc3545;
+}
+
+.message-formatter .json-null {
+  color: #6c757d;
+} 
