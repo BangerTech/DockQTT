@@ -1,67 +1,75 @@
-import mqtt, { IClientOptions, QoS } from 'mqtt';
-import { Server } from 'socket.io';
+import mqtt from 'mqtt';
+import { WebSocketServer, WebSocket } from 'ws';
+
+// WebSocket.readyState ist ein enum mit den Werten 0, 1, 2, 3
+type WebSocketReadyState = 0 | 1 | 2 | 3;
+
+interface WebSocketClient extends WebSocket {
+  readyState: WebSocketReadyState;
+}
 
 export class MqttHandler {
-  private client: mqtt.Client | null = null;
-  private io: Server;
+  private mqttClient: mqtt.MqttClient | null = null;
+  private wss: WebSocketServer;
 
-  constructor(io: Server) {
-    this.io = io;
+  constructor(wss: WebSocketServer) {
+    this.wss = wss;
   }
 
-  async connect(options: {
-    host: string;
-    port: number;
-    username?: string;
-    password?: string;
-  }) {
-    const url = `mqtt://${options.host}:${options.port}`;
-    
-    const mqttOptions: IClientOptions = {
-      username: options.username,
-      password: options.password,
+  async connect(config: { host: string; port: string; username?: string; password?: string }) {
+    if (this.mqttClient) {
+      this.mqttClient.end();
+    }
+
+    const { host, port, username, password } = config;
+    const brokerUrl = `mqtt://${host}:${port}`;
+
+    const options: mqtt.IClientOptions = {
+      username,
+      password,
       reconnectPeriod: 1000,
-      connectTimeout: 5000,
     };
 
-    this.client = mqtt.connect(url, mqttOptions);
-
     return new Promise<void>((resolve, reject) => {
-      this.client?.once('connect', () => {
-        this.client?.subscribe('#');
-        this.io.emit('mqtt:connected');
-        resolve();
-      });
+      try {
+        this.mqttClient = mqtt.connect(brokerUrl, options);
 
-      this.client?.once('error', (error) => {
-        reject(error);
-      });
-
-      this.client?.on('message', (topic, message) => {
-        this.io.emit('mqtt:message', {
-          topic,
-          message: message.toString(),
-          timestamp: new Date().toISOString()
+        this.mqttClient.on('connect', () => {
+          console.log('Connected to MQTT broker');
+          this.setupMessageHandlers();
+          resolve();
         });
-      });
 
-      this.client?.on('error', (error) => {
-        this.io.emit('mqtt:error', error.message);
-      });
+        this.mqttClient.on('error', (error: Error) => {
+          console.error('MQTT error:', error);
+          reject(error);
+        });
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 
-  publish(topic: string, message: string, qos: QoS = 0) {
-    if (!this.client) {
-      throw new Error('Not connected to MQTT broker');
-    }
-    this.client.publish(topic, message, { qos });
-  }
+  private setupMessageHandlers() {
+    if (!this.mqttClient) return;
 
-  disconnect() {
-    if (this.client) {
-      this.client.end();
-      this.client = null;
-    }
+    this.mqttClient.subscribe('#', { qos: 0 });
+
+    this.mqttClient.on('message', (topic: string, message: Buffer) => {
+      const clients = this.wss.clients as Set<WebSocketClient>;
+      clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'topics',
+            data: {
+              [topic]: {
+                message: message.toString(),
+                timestamp: Date.now()
+              }
+            }
+          }));
+        }
+      });
+    });
   }
 } 

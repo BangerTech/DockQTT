@@ -2,14 +2,16 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Kopiere package.json und package-lock.json (wenn vorhanden)
+# Kopiere package.json und installiere Abhängigkeiten
 COPY package*.json ./
-
-# Installiere Abhängigkeiten
 RUN npm install
 
-# Kopiere den Rest des Codes
-COPY . .
+# Kopiere den Rest
+COPY tsconfig.json ./
+COPY src ./src
+
+# TypeScript kompilieren
+RUN npm run build
 
 EXPOSE 3000
 
