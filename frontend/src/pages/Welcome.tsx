@@ -1,15 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, Form, Input, Switch, Typography, theme } from 'antd';
+import { Button, Card, Form, Input, Switch, Typography, theme, Select, notification, Space } from 'antd';
 import { ConnectionConfig } from '../types';
-import { WifiOutlined } from '@ant-design/icons';
+import { WifiOutlined, MoonOutlined, SunOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useMqttStore } from '../store/mqttStore';
+import '../styles/ThemeToggle.css';
 
 const { Title, Text } = Typography;
+const { Option } = Select;
 
-export const Welcome: React.FC = () => {
+interface ConnectionConfig {
+  id?: string;
+  url: string;
+  port: number;
+  username?: string;
+  password?: string;
+  save?: boolean;
+}
+
+export const Welcome: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean) => void }> = ({ darkMode, setDarkMode }) => {
   const { token } = theme.useToken();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [savedConnections, setSavedConnections] = useState<ConnectionConfig[]>([]);
+  const [form] = Form.useForm();
+  const { setConnected, setCurrentConnection } = useMqttStore();
+
+  useEffect(() => {
+    const connections = localStorage.getItem('mqttConnections');
+    if (connections) {
+      setSavedConnections(JSON.parse(connections));
+    }
+  }, []);
 
   const handleConnect = async (values: ConnectionConfig) => {
     setLoading(true);
@@ -26,19 +48,41 @@ export const Welcome: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
+        if (values.save) {
+          const newConnection = {
+            ...values,
+            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          };
+          const newConnections = [...savedConnections, newConnection];
+          setSavedConnections(newConnections);
+          localStorage.setItem('mqttConnections', JSON.stringify(newConnections));
+        }
+        setConnected(true);
+        setCurrentConnection(values);
         navigate('/dashboard');
       } else {
         throw new Error(data.message || 'Connection failed');
       }
     } catch (error) {
       console.error('Connection error:', error);
-      // Verwende notification statt message für bessere UX
       notification.error({
         message: 'Connection Failed',
         description: error instanceof Error ? error.message : 'Failed to connect to broker',
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteConnection = (idToDelete: string) => {
+    const newConnections = savedConnections.filter(conn => conn.id !== idToDelete);
+    setSavedConnections(newConnections);
+    localStorage.setItem('mqttConnections', JSON.stringify(newConnections));
+    
+    // Reset form if the currently selected connection is deleted
+    const currentId = form.getFieldValue('savedConnection');
+    if (currentId === idToDelete) {
+      form.resetFields();
     }
   };
 
@@ -51,115 +95,200 @@ export const Welcome: React.FC = () => {
       background: token.colorBgLayout,
       padding: '24px',
     }}>
-      <Card 
-        style={{
-          width: '100%',
-          maxWidth: '440px',
-          borderRadius: token.borderRadiusLG,
-          boxShadow: token.boxShadow,
-        }}
-        bodyStyle={{ padding: '32px' }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <WifiOutlined style={{ 
-            fontSize: '48px', 
-            color: token.colorPrimary,
-            marginBottom: '16px' 
-          }} />
-          <Title level={2} style={{ margin: 0 }}>
-            MQTT Explorer
-          </Title>
-          <Text type="secondary">
-            Connect to your MQTT broker
-          </Text>
-        </div>
-
-        <Form
-          name="connection"
-          onFinish={handleConnect}
-          layout="vertical"
-          initialValues={{
-            url: 'localhost',
-            port: 1883
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: '24px',
+        maxWidth: 'calc(440px + 48px)',
+        width: '100%',
+      }}>
+        <Card 
+          style={{
+            width: '100%',
+            maxWidth: '440px',
+            borderRadius: token.borderRadiusLG,
+            boxShadow: token.boxShadow,
+            padding: '32px',
           }}
-          requiredMark={false}
         >
-          <Form.Item
-            label="Broker URL"
-            name="url"
-            rules={[{ required: true, message: 'Please enter broker URL' }]}
-          >
-            <Input 
-              placeholder="localhost"
-              size="large"
-              style={{ borderRadius: token.borderRadius }}
-            />
-          </Form.Item>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <WifiOutlined style={{ 
+              fontSize: '48px', 
+              color: token.colorPrimary,
+              marginBottom: '16px' 
+            }} />
+            <Title level={2} style={{ margin: 0 }}>
+              MQTT Explorer
+            </Title>
+            <Text type="secondary">
+              Connect to your MQTT broker
+            </Text>
+          </div>
 
-          <Form.Item
-            label="Port"
-            name="port"
-            rules={[{ required: true, message: 'Please enter port number' }]}
+          <Form
+            form={form}
+            name="connection"
+            onFinish={handleConnect}
+            layout="vertical"
+            initialValues={{
+              url: 'localhost',
+              port: 1883
+            }}
+            requiredMark={false}
           >
-            <Input 
-              type="number" 
-              placeholder="1883"
-              size="large"
-              style={{ borderRadius: token.borderRadius }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Username"
-            name="username"
-          >
-            <Input 
-              placeholder="Optional"
-              size="large"
-              style={{ borderRadius: token.borderRadius }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Password"
-            name="password"
-          >
-            <Input.Password 
-              placeholder="Optional"
-              size="large"
-              style={{ borderRadius: token.borderRadius }}
-              autoComplete="current-password"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="save"
-            valuePropName="checked"
-          >
-            <Switch 
-              checkedChildren="Save connection"
-              unCheckedChildren="Don't save"
-            />
-          </Form.Item>
-
-          <Form.Item style={{ marginBottom: 0 }}>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              loading={loading}
-              size="large"
-              style={{
-                width: '100%',
-                height: '48px',
-                borderRadius: token.borderRadius,
-                fontWeight: 500,
-              }}
+            <Form.Item
+              label="Broker URL"
+              name="url"
+              rules={[{ required: true, message: 'Please enter broker URL' }]}
             >
-              Connect
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
+              <Input 
+                placeholder="localhost"
+                size="large"
+                style={{ borderRadius: token.borderRadius }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Port"
+              name="port"
+              rules={[{ required: true, message: 'Please enter port number' }]}
+            >
+              <Input 
+                type="number" 
+                placeholder="1883"
+                size="large"
+                style={{ borderRadius: token.borderRadius }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Username"
+              name="username"
+            >
+              <Input 
+                placeholder="Optional"
+                size="large"
+                style={{ borderRadius: token.borderRadius }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Password"
+              name="password"
+            >
+              <Input.Password 
+                placeholder="Optional"
+                size="large"
+                style={{ borderRadius: token.borderRadius }}
+                autoComplete="current-password"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="save"
+              valuePropName="checked"
+            >
+              <Switch 
+                checkedChildren="Save connection"
+                unCheckedChildren="Don't save"
+              />
+            </Form.Item>
+
+            <Form.Item
+              label="Saved Connections"
+              name="savedConnection"
+            >
+              <Select
+                placeholder="Select a saved connection"
+                onChange={(value) => {
+                  const connection = savedConnections.find(conn => conn.id === value);
+                  if (connection) {
+                    form.setFieldsValue({
+                      url: connection.url,
+                      port: connection.port,
+                      username: connection.username,
+                      password: connection.password,
+                    });
+                  }
+                }}
+                dropdownRender={(menu) => (
+                  <div>
+                    {menu}
+                    <style>
+                      {`
+                        .connection-item {
+                          display: flex;
+                          justify-content: space-between;
+                          align-items: center;
+                          padding: 8px 12px;
+                        }
+                        .delete-icon {
+                          visibility: hidden;
+                        }
+                        .connection-item:hover .delete-icon {
+                          visibility: visible;
+                        }
+                      `}
+                    </style>
+                  </div>
+                )}
+              >
+                {savedConnections.map((conn) => (
+                  <Option key={conn.id} value={conn.id}>
+                    <div className="connection-item">
+                      <span>{conn.url}:{conn.port}</span>
+                      <DeleteOutlined
+                        className="delete-icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteConnection(conn.id!);
+                        }}
+                        style={{
+                          color: token.colorError,
+                          fontSize: '16px',
+                          cursor: 'pointer',
+                        }}
+                      />
+                    </div>
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <Form.Item style={{ marginBottom: 0 }}>
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                loading={loading}
+                size="large"
+                style={{
+                  width: '100%',
+                  height: '48px',
+                  borderRadius: token.borderRadius,
+                  fontWeight: 500,
+                }}
+              >
+                Connect
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
+
+        <Button
+          type="text"
+          icon={darkMode ? <SunOutlined /> : <MoonOutlined />}
+          onClick={() => {
+            setDarkMode(!darkMode);
+            console.log('Switching theme to:', !darkMode ? 'dark' : 'light'); // Debug-Log
+          }}
+          className="theme-toggle"
+          style={{
+            color: darkMode ? token.colorTextSecondary : token.colorText,
+            background: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+            boxShadow: token.boxShadowTertiary,
+          }}
+        />
+      </div>
     </div>
   );
 }; 

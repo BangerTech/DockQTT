@@ -1,64 +1,34 @@
 import React from 'react';
-import { Layout, Typography, theme } from 'antd';
-import { TopicTree } from '../components/TopicTree';
+import { useWebSocket } from '../hooks/useWebSocket';
 import { MessageViewer } from '../components/MessageViewer';
-import { useMqttStore } from '../store/mqttStore';
+import { Button } from 'antd';
+import { SunOutlined, MoonOutlined } from '@ant-design/icons';
 
-const { Content, Sider } = Layout;
-const { Title } = Typography;
-
-export const Dashboard: React.FC = () => {
-  const { token } = theme.useToken();
-  const { topicMessages, selectedTopic } = useMqttStore();
+export const Dashboard: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean) => void }> = ({ darkMode, setDarkMode }) => {
+  useWebSocket();
 
   return (
-    <Layout style={{ height: '100vh', background: token.colorBgContainer }}>
-      <Sider 
-        width={320} 
-        style={{
-          background: token.colorBgElevated,
-          borderRight: `1px solid ${token.colorBorder}`,
-          height: '100vh',
-          position: 'fixed',
-          left: 0,
-          overflow: 'auto',
+    <div style={{ padding: '24px' }}>
+      <Button
+        type="text"
+        icon={darkMode ? <SunOutlined /> : <MoonOutlined />}
+        onClick={() => {
+          setDarkMode(!darkMode);
+          console.log('Switching theme to:', !darkMode ? 'dark' : 'light'); // Debug-Log
         }}
-      >
-        <div style={{ 
-          padding: '16px',
-          borderBottom: `1px solid ${token.colorBorder}`,
-          position: 'sticky',
-          top: 0,
-          background: token.colorBgElevated,
-          zIndex: 1,
-        }}>
-          <Title level={4} style={{ margin: 0 }}>MQTT Explorer</Title>
-        </div>
-        <TopicTree messages={topicMessages} />
-      </Sider>
-      
-      <Layout style={{ marginLeft: 320 }}>
-        <Content style={{ 
-          padding: '24px',
-          minHeight: '100vh',
-          background: token.colorBgContainer,
-        }}>
-          {selectedTopic ? (
-            <MessageViewer />
-          ) : (
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 'calc(100vh - 48px)',
-              color: token.colorTextSecondary,
-              fontSize: '16px',
-            }}>
-              Select a topic to view messages
-            </div>
-          )}
-        </Content>
-      </Layout>
-    </Layout>
+        style={{
+          color: darkMode ? '#fff' : '#000',
+          background: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+          borderRadius: '50%',
+          width: '48px',
+          height: '48px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '16px',
+        }}
+      />
+      <MessageViewer />
+    </div>
   );
 }; 

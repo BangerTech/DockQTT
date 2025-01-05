@@ -1,14 +1,17 @@
 import create from 'zustand';
-import { MqttMessage } from '../types';
+import { MqttMessage, ConnectionConfig } from '../types';
 
 interface MqttState {
   messages: MqttMessage[];
   topicMessages: Record<string, MqttMessage>;
   selectedTopic: string | null;
   connected: boolean;
+  currentConnection: ConnectionConfig | null;
   addMessage: (message: MqttMessage) => void;
   setConnected: (status: boolean) => void;
   selectTopic: (topic: string | null) => void;
+  disconnect: () => void;
+  setCurrentConnection: (config: ConnectionConfig) => void;
 }
 
 export const useMqttStore = create<MqttState>((set) => ({
@@ -16,6 +19,7 @@ export const useMqttStore = create<MqttState>((set) => ({
   topicMessages: {},
   selectedTopic: null,
   connected: false,
+  currentConnection: null,
   addMessage: (message) => set((state) => {
     const newTopicMessages = {
       ...state.topicMessages,
@@ -29,4 +33,12 @@ export const useMqttStore = create<MqttState>((set) => ({
   }),
   setConnected: (status) => set({ connected: status }),
   selectTopic: (topic) => set({ selectedTopic: topic }),
+  disconnect: () => set({ 
+    connected: false, 
+    messages: [], 
+    topicMessages: {}, 
+    selectedTopic: null,
+    currentConnection: null 
+  }),
+  setCurrentConnection: (config) => set({ currentConnection: config }),
 })); 

@@ -1,39 +1,24 @@
-import { useEffect, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useEffect } from 'react';
 import { useMqttStore } from '../store/mqttStore';
-import { MqttMessage } from '../types';
+import io from 'socket.io-client';
 
 export const useWebSocket = () => {
   const { addMessage, setConnected } = useMqttStore();
 
-  const handleMessage = useCallback((message: MqttMessage) => {
-    addMessage(message);
-  }, [addMessage]);
-
   useEffect(() => {
-    const socket: Socket = io('http://192.168.2.86:4000', {
-      transports: ['websocket', 'polling'],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
+    const socket = io();
+
+    socket.on('mqtt:connected', (status: boolean) => {
+      setConnected(status);
     });
 
-    socket.on('connect', () => {
-      console.log('WebSocket connected');
-    });
-
-    socket.on('mqtt:connected', () => {
-      setConnected(true);
-    });
-
-    socket.on('mqtt:message', handleMessage);
-
-    socket.on('mqtt:error', (error: string) => {
-      console.error('MQTT error:', error);
-      setConnected(false);
+    socket.on('mqtt:message', (message) => {
+      console.log('Received message:', message);
+      addMessage(message);
     });
 
     return () => {
       socket.disconnect();
     };
-  }, [handleMessage, setConnected]);
+  }, [addMessage, setConnected]);
 }; 

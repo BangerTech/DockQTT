@@ -17,7 +17,7 @@ export class MqttService {
       }
 
       const url = `mqtt://${config.url}:${config.port}`;
-      console.log('Connecting to MQTT broker:', url);  // Debug-Log
+      console.log('Connecting to MQTT broker:', url);
 
       this.client = mqtt.connect(url, {
         username: config.username,
@@ -28,10 +28,9 @@ export class MqttService {
 
       return new Promise((resolve, reject) => {
         this.client?.on('connect', () => {
-          console.log('Connected to MQTT broker');  // Debug-Log
-          this.io.emit('mqtt:connected');
+          console.log('Connected to MQTT broker');
+          this.io.emit('mqtt:connected', true);
           
-          // Subscribe to all topics
           this.client?.subscribe('#', (err) => {
             if (err) {
               console.error('Subscription error:', err);
@@ -44,24 +43,27 @@ export class MqttService {
         });
 
         this.client?.on('message', (topic, payload) => {
-          console.log(`Received message on ${topic}`);  // Debug-Log
+          console.log(`Received message on ${topic}`);
           this.io.emit('mqtt:message', {
             topic,
             payload: payload.toString(),
             timestamp: Date.now(),
-            retain: false,
-            qos: 0,
           });
         });
 
-        this.client?.on('error', (error) => {
-          console.error('MQTT error:', error);
-          this.io.emit('mqtt:error', error.message);
-          reject(error);
+        this.client?.on('error', (err) => {
+          console.error('MQTT error:', err);
+          this.io.emit('mqtt:connected', false);
+          reject(err);
+        });
+
+        this.client?.on('disconnect', () => {
+          console.log('Disconnected from MQTT broker');
+          this.io.emit('mqtt:connected', false);
         });
       });
     } catch (error) {
-      console.error('MQTT connection error:', error);
+      console.error('Connection error:', error);
       throw error;
     }
   }
