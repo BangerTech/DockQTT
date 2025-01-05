@@ -1,12 +1,12 @@
 import express from 'express';
-import http from 'http';
+import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { MqttService } from './services/mqtt.service';
 import { ConnectionConfig } from './types';
 
 const app = express();
-const server = http.createServer(app);
+const server = createServer(app);
 
 // CORS-Konfiguration aktualisieren
 const allowedOrigins = [
@@ -17,23 +17,18 @@ const allowedOrigins = [
 
 // CORS für Express
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: ['http://localhost:3000', 'http://frontend:3000'],
   credentials: true
 }));
 
 // CORS für Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://frontend:3000"],
-    methods: ["GET", "POST"],
-    credentials: true
+    origin: ['http://localhost:3000', 'http://frontend:3000'],
+    methods: ['GET', 'POST'],
+    credentials: true,
   },
+  path: '/socket.io',
 });
 
 const mqttService = new MqttService(io);
@@ -77,7 +72,7 @@ io.on('connection', (socket) => {
   // Handle socket events here
 });
 
-server.listen(4000, () => {
+server.listen(4000, '0.0.0.0', () => {
   console.log('Server running on port 4000');
 });
 

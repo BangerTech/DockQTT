@@ -6,7 +6,8 @@ export const useWebSocket = () => {
   const { addMessage, setConnected } = useMqttStore();
 
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_BACKEND_URL || 'http://backend:4000', {
+    const socket = io({
+      path: '/socket.io',
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -14,6 +15,11 @@ export const useWebSocket = () => {
 
     socket.on('connect', () => {
       console.log('WebSocket connected');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('WebSocket connection error:', error);
+      setConnected(false);
     });
 
     socket.on('disconnect', () => {
@@ -27,7 +33,7 @@ export const useWebSocket = () => {
     });
 
     socket.on('mqtt:message', (message) => {
-      console.log('Received message:', message);
+      console.log('WebSocket received message:', message);
       addMessage(message);
     });
 

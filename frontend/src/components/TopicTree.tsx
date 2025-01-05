@@ -15,7 +15,13 @@ export const TopicTree: React.FC<TopicTreeProps> = ({ messages }) => {
   const [searchText, setSearchText] = useState('');
   const { selectTopic, selectedTopic } = useMqttStore();
 
+  console.log('TopicTree rendering with messages:', {
+    topicCount: Object.keys(messages).length,
+    topics: Object.keys(messages)
+  });
+
   const buildTree = useMemo(() => {
+    console.log('Building tree with messages:', messages);
     const tree: DataNode[] = [];
     const pathMap = new Map<string, DataNode>();
 
@@ -41,6 +47,7 @@ export const TopicTree: React.FC<TopicTreeProps> = ({ messages }) => {
 
             if (isLast) {
               node.isLeaf = true;
+              const latestMessage = msgs[0];
               node.title = (
                 <div style={{ 
                   display: 'flex',
@@ -49,7 +56,20 @@ export const TopicTree: React.FC<TopicTreeProps> = ({ messages }) => {
                   padding: '4px 0',
                   width: '100%',
                 }}>
-                  <span style={{ fontWeight: 500 }}>{part}</span>
+                  <div>
+                    <div style={{ fontWeight: 500 }}>{part}</div>
+                    {latestMessage && (
+                      <div style={{ 
+                        color: token.colorTextSecondary,
+                        fontSize: '12px',
+                        marginTop: '2px',
+                      }}>
+                        {typeof latestMessage.payload === 'object' 
+                          ? JSON.stringify(latestMessage.payload)
+                          : latestMessage.payload}
+                      </div>
+                    )}
+                  </div>
                   {msgs.length > 0 && (
                     <Badge 
                       count={msgs.length} 

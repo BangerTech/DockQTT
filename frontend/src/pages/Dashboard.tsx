@@ -14,6 +14,14 @@ const { Title, Text } = Typography;
 export const Dashboard: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean) => void }> = ({ darkMode, setDarkMode }) => {
   const { token } = theme.useToken();
   const { topicMessages, selectedTopic, connected, disconnect, currentConnection } = useMqttStore();
+  
+  console.log('Dashboard rendering with:', {
+    connected,
+    selectedTopic,
+    topicCount: Object.keys(topicMessages).length,
+    topics: Object.keys(topicMessages)
+  });
+
   useWebSocket();
 
   return (

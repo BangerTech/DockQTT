@@ -10,8 +10,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - VITE_BACKEND_URL=http://backend:4000
+    depends_on:
+      - backend
     networks:
       - mqtt-network
 

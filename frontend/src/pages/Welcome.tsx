@@ -46,9 +46,14 @@ export const Welcome: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean)
         body: JSON.stringify(values),
       });
       
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Connection failed');
+      }
+
       const data = await response.json();
 
-      if (response.ok) {
+      if (data.success) {
         if (values.save) {
           const newConnection = {
             ...values,
@@ -61,8 +66,6 @@ export const Welcome: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean)
         setConnected(true);
         setCurrentConnection(values);
         navigate('/dashboard');
-      } else {
-        throw new Error(data.message || 'Connection failed');
       }
     } catch (error) {
       console.error('Connection error:', error);
