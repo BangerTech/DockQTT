@@ -1,0 +1,34 @@
+.theme-switch {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.theme-switch .ant-switch-handle {
+  width: 24px;
+  height: 24px;
+  top: 2px;
+  left: 2px;
+}
+
+.theme-switch.ant-switch-checked .ant-switch-handle {
+  left: calc(100% - 26px);
+}
+
+.theme-switch .ant-switch-inner-checked,
+.theme-switch .ant-switch-inner-unchecked {
+  font-size: 12px;
+  margin: 0 8px;
+}
+
+.theme-switch:not(.ant-switch-disabled):hover {
+  opacity: 0.85;
+}
+
+.theme-switch .anticon {
+  color: #fff;
+  vertical-align: -1px;
+}
+
+.theme-switch:not(.ant-switch-checked) .anticon {
+  color: rgba(0, 0, 0, 0.65);
+} 
