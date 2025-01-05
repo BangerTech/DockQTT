@@ -17,15 +17,19 @@ export default defineConfig({
     port: 3000,
     host: '0.0.0.0',
     strictPort: true,
+    watch: {
+      usePolling: true
+    },
     proxy: {
       '/api': {
-        target: 'http://backend:4000',
+        target: 'http://192.168.2.86:4000',
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'http://backend:4000',
+        target: 'http://192.168.2.86:4000',
         ws: true,
       },
     },
   },
+  base: './',
 }); 

@@ -11,7 +11,11 @@ export const useWebSocket = () => {
   }, [addMessage]);
 
   useEffect(() => {
-    const socket: Socket = io(import.meta.env.VITE_API_URL || 'http://localhost:4000');
+    const socket: Socket = io('http://192.168.2.86:4000', {
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
 
     socket.on('connect', () => {
       console.log('WebSocket connected');

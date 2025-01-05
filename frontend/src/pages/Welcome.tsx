@@ -10,21 +10,29 @@ export const Welcome: React.FC = () => {
   const handleConnect = async (values: ConnectionConfig) => {
     setLoading(true);
     try {
-      // API call to connect to broker
+      console.log('Connecting with config:', values);  // Debug-Log
+      
       const response = await fetch('/api/connect', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify(values),
       });
       
+      const data = await response.json();
+      console.log('Connection response:', data);  // Debug-Log
+
       if (response.ok) {
         message.success('Connected successfully!');
         navigate('/dashboard');
       } else {
-        throw new Error('Connection failed');
+        throw new Error(data.message || 'Connection failed');
       }
     } catch (error) {
-      message.error('Failed to connect to broker');
+      console.error('Connection error:', error);
+      message.error(error instanceof Error ? error.message : 'Failed to connect to broker');
     } finally {
       setLoading(false);
     }
@@ -38,13 +46,17 @@ export const Welcome: React.FC = () => {
           name="connection"
           onFinish={handleConnect}
           layout="vertical"
+          initialValues={{
+            url: 'localhost',
+            port: 1883
+          }}
         >
           <Form.Item
             label="Broker URL"
             name="url"
             rules={[{ required: true }]}
           >
-            <Input placeholder="mqtt://localhost" />
+            <Input placeholder="localhost" />
           </Form.Item>
 
           <Form.Item
@@ -66,7 +78,7 @@ export const Welcome: React.FC = () => {
             label="Password"
             name="password"
           >
-            <Input.Password />
+            <Input.Password autoComplete="current-password" />
           </Form.Item>
 
           <Form.Item

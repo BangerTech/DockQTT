@@ -1,67 +1,81 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Tree, Input } from 'antd';
-import type { DataNode } from 'antd/es/tree';
-import { useMqttStore } from '../store/mqttStore';
+import { DataNode } from 'antd/es/tree';
+import { MqttMessage } from '../types';
 
 const { Search } = Input;
 
-export const TopicTree: React.FC = () => {
-  const { messages, setSelectedTopic } = useMqttStore();
-  const [treeData, setTreeData] = useState<DataNode[]>([]);
-  const [searchValue, setSearchValue] = useState('');
+interface TopicTreeProps {
+  messages: Record<string, MqttMessage>;
+}
 
-  useEffect(() => {
-    const topics = Object.keys(messages);
+export const TopicTree: React.FC<TopicTreeProps> = ({ messages }) => {
+  const buildTree = useMemo(() => {
     const tree: DataNode[] = [];
+    const pathMap = new Map<string, DataNode>();
 
-    topics.forEach((topic) => {
+    Object.entries(messages).forEach(([topic, msg]) => {
       const parts = topic.split('/');
-      let currentLevel = tree;
-
+      let currentPath = '';
+      
       parts.forEach((part, index) => {
         const isLast = index === parts.length - 1;
-        const existingNode = currentLevel.find((node) => node.key === part);
-
-        if (existingNode) {
-          if (!isLast) {
-            currentLevel = existingNode.children as DataNode[];
-          }
-        } else {
-          const newNode: DataNode = {
+        const parentPath = currentPath;
+        currentPath = currentPath ? `${currentPath}/${part}` : part;
+        
+        if (!pathMap.has(currentPath)) {
+          const node: DataNode = {
             title: part,
-            key: isLast ? topic : part,
-            children: isLast ? [] : [],
+            key: currentPath,
+            children: [],
           };
-          currentLevel.push(newNode);
-          if (!isLast) {
-            currentLevel = newNode.children as DataNode[];
+
+          if (isLast) {
+            node.isLeaf = true;
+            node.title = (
+              <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                fontSize: '12px'
+              }}>
+                <span style={{ fontWeight: 'bold' }}>{part}</span>
+                <span style={{ 
+                  color: '#666',
+                  wordBreak: 'break-all'
+                }}>{msg.payload}</span>
+              </div>
+            );
           }
+
+          if (parentPath) {
+            const parentNode = pathMap.get(parentPath);
+            parentNode?.children?.push(node);
+          } else {
+            tree.push(node);
+          }
+
+          pathMap.set(currentPath, node);
         }
       });
     });
 
-    setTreeData(tree);
+    return tree;
   }, [messages]);
 
-  const onSelect = (selectedKeys: React.Key[]) => {
-    setSelectedTopic(selectedKeys[0]?.toString() || null);
-  };
-
-  const filterTreeNode = (node: DataNode) => {
-    return node.key?.toString().toLowerCase().includes(searchValue.toLowerCase());
-  };
-
   return (
-    <div className="topic-tree">
+    <div style={{ padding: '16px' }}>
       <Search
         placeholder="Search topics..."
-        onChange={(e) => setSearchValue(e.target.value)}
-        style={{ marginBottom: 8 }}
+        style={{ marginBottom: 16 }}
       />
       <Tree
-        treeData={treeData}
-        onSelect={onSelect}
-        filterTreeNode={searchValue ? filterTreeNode : undefined}
+        treeData={buildTree}
+        defaultExpandAll
+        className="topic-tree"
+        style={{ 
+          overflow: 'auto',
+          maxHeight: 'calc(100vh - 180px)'
+        }}
       />
     </div>
   );

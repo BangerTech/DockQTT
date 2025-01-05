@@ -1,58 +1,47 @@
-import React, { useEffect } from 'react';
-import { Layout, Tree, Card, Select, Typography } from 'antd';
-import { useMqttStore } from '../store/mqttStore';
-import { MessageViewer } from '../components/MessageViewer';
+import React from 'react';
+import { Layout, Typography } from 'antd';
 import { TopicTree } from '../components/TopicTree';
+import { MessageViewer } from '../components/MessageViewer';
+import { useMqttStore } from '../store/mqttStore';
 
-const { Header, Sider, Content } = Layout;
+const { Content, Sider, Header } = Layout;
 const { Title } = Typography;
 
 export const Dashboard: React.FC = () => {
-  const { 
-    connected, 
-    selectedTopic, 
-    viewMode, 
-    setViewMode, 
-    messages 
-  } = useMqttStore();
-
-  useEffect(() => {
-    if (!connected) {
-      // Redirect to welcome if not connected
-      window.location.href = '/';
-    }
-  }, [connected]);
+  const { messages, topicMessages } = useMqttStore();
 
   return (
-    <Layout className="dashboard-container">
-      <Header className="dashboard-header">
-        <Title level={4}>MQTT Web Explorer</Title>
-        <Select
-          value={viewMode}
-          onChange={setViewMode}
-          options={[
-            { label: 'Raw', value: 'raw' },
-            { label: 'JSON', value: 'json' },
-            { label: 'Table', value: 'table' },
-          ]}
-        />
+    <Layout style={{ height: '100vh' }}>
+      <Header style={{ 
+        background: '#fff', 
+        padding: '0 24px',
+        borderBottom: '1px solid #f0f0f0',
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <Title level={4} style={{ margin: 0 }}>MQTT Explorer</Title>
       </Header>
-      
       <Layout>
-        <Sider width={300} className="dashboard-sider">
-          <TopicTree />
+        <Sider 
+          width={400} 
+          theme="light"
+          style={{
+            borderRight: '1px solid #f0f0f0',
+            overflow: 'auto',
+            height: 'calc(100vh - 64px)',
+          }}
+        >
+          <TopicTree messages={topicMessages} />
         </Sider>
-        
-        <Content className="dashboard-content">
-          {selectedTopic ? (
-            <MessageViewer 
-              messages={messages[selectedTopic] || []}
-              viewMode={viewMode}
-            />
-          ) : (
-            <Card>Select a topic to view messages</Card>
-          )}
-        </Content>
+        <Layout>
+          <Content style={{ 
+            padding: '24px',
+            overflow: 'auto',
+            height: 'calc(100vh - 64px)',
+          }}>
+            <MessageViewer />
+          </Content>
+        </Layout>
       </Layout>
     </Layout>
   );
