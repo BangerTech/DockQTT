@@ -1,47 +1,63 @@
 import React from 'react';
-import { Layout, Typography } from 'antd';
+import { Layout, Typography, theme } from 'antd';
 import { TopicTree } from '../components/TopicTree';
 import { MessageViewer } from '../components/MessageViewer';
 import { useMqttStore } from '../store/mqttStore';
 
-const { Content, Sider, Header } = Layout;
+const { Content, Sider } = Layout;
 const { Title } = Typography;
 
 export const Dashboard: React.FC = () => {
-  const { messages, topicMessages } = useMqttStore();
+  const { token } = theme.useToken();
+  const { topicMessages, selectedTopic } = useMqttStore();
 
   return (
-    <Layout style={{ height: '100vh' }}>
-      <Header style={{ 
-        background: '#fff', 
-        padding: '0 24px',
-        borderBottom: '1px solid #f0f0f0',
-        display: 'flex',
-        alignItems: 'center'
-      }}>
-        <Title level={4} style={{ margin: 0 }}>MQTT Explorer</Title>
-      </Header>
-      <Layout>
-        <Sider 
-          width={400} 
-          theme="light"
-          style={{
-            borderRight: '1px solid #f0f0f0',
-            overflow: 'auto',
-            height: 'calc(100vh - 64px)',
-          }}
-        >
-          <TopicTree messages={topicMessages} />
-        </Sider>
-        <Layout>
-          <Content style={{ 
-            padding: '24px',
-            overflow: 'auto',
-            height: 'calc(100vh - 64px)',
-          }}>
+    <Layout style={{ height: '100vh', background: token.colorBgContainer }}>
+      <Sider 
+        width={320} 
+        style={{
+          background: token.colorBgElevated,
+          borderRight: `1px solid ${token.colorBorder}`,
+          height: '100vh',
+          position: 'fixed',
+          left: 0,
+          overflow: 'auto',
+        }}
+      >
+        <div style={{ 
+          padding: '16px',
+          borderBottom: `1px solid ${token.colorBorder}`,
+          position: 'sticky',
+          top: 0,
+          background: token.colorBgElevated,
+          zIndex: 1,
+        }}>
+          <Title level={4} style={{ margin: 0 }}>MQTT Explorer</Title>
+        </div>
+        <TopicTree messages={topicMessages} />
+      </Sider>
+      
+      <Layout style={{ marginLeft: 320 }}>
+        <Content style={{ 
+          padding: '24px',
+          minHeight: '100vh',
+          background: token.colorBgContainer,
+        }}>
+          {selectedTopic ? (
             <MessageViewer />
-          </Content>
-        </Layout>
+          ) : (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: 'calc(100vh - 48px)',
+              color: token.colorTextSecondary,
+              fontSize: '16px',
+            }}>
+              Select a topic to view messages
+            </div>
+          )}
+        </Content>
       </Layout>
     </Layout>
   );

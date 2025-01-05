@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
-import { Tree, Input } from 'antd';
+import React, { useMemo, useState } from 'react';
+import { Tree, Input, theme } from 'antd';
 import { DataNode } from 'antd/es/tree';
 import { MqttMessage } from '../types';
+import { useMqttStore } from '../store/mqttStore';
 
 const { Search } = Input;
 
@@ -10,71 +11,86 @@ interface TopicTreeProps {
 }
 
 export const TopicTree: React.FC<TopicTreeProps> = ({ messages }) => {
+  const { token } = theme.useToken();
+  const [searchText, setSearchText] = useState('');
+  const { selectTopic, selectedTopic } = useMqttStore();
+
   const buildTree = useMemo(() => {
     const tree: DataNode[] = [];
     const pathMap = new Map<string, DataNode>();
 
-    Object.entries(messages).forEach(([topic, msg]) => {
-      const parts = topic.split('/');
-      let currentPath = '';
-      
-      parts.forEach((part, index) => {
-        const isLast = index === parts.length - 1;
-        const parentPath = currentPath;
-        currentPath = currentPath ? `${currentPath}/${part}` : part;
+    Object.entries(messages)
+      .filter(([topic]) => 
+        !searchText || topic.toLowerCase().includes(searchText.toLowerCase())
+      )
+      .forEach(([topic, msg]) => {
+        const parts = topic.split('/');
+        let currentPath = '';
         
-        if (!pathMap.has(currentPath)) {
-          const node: DataNode = {
-            title: part,
-            key: currentPath,
-            children: [],
-          };
+        parts.forEach((part, index) => {
+          const isLast = index === parts.length - 1;
+          const parentPath = currentPath;
+          currentPath = currentPath ? `${currentPath}/${part}` : part;
+          
+          if (!pathMap.has(currentPath)) {
+            const node: DataNode = {
+              title: part,
+              key: currentPath,
+              children: [],
+            };
 
-          if (isLast) {
-            node.isLeaf = true;
-            node.title = (
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column',
-                fontSize: '12px'
-              }}>
-                <span style={{ fontWeight: 'bold' }}>{part}</span>
-                <span style={{ 
-                  color: '#666',
-                  wordBreak: 'break-all'
-                }}>{msg.payload}</span>
-              </div>
-            );
+            if (isLast) {
+              node.isLeaf = true;
+              node.title = (
+                <div style={{ 
+                  padding: '4px 0',
+                  fontSize: '14px',
+                }}>
+                  <div style={{ fontWeight: 500 }}>{part}</div>
+                  <div style={{ 
+                    color: token.colorTextSecondary,
+                    fontSize: '12px',
+                    marginTop: '2px',
+                  }}>
+                    {msg.payload}
+                  </div>
+                </div>
+              );
+            }
+
+            if (parentPath) {
+              const parentNode = pathMap.get(parentPath);
+              parentNode?.children?.push(node);
+            } else {
+              tree.push(node);
+            }
+
+            pathMap.set(currentPath, node);
           }
-
-          if (parentPath) {
-            const parentNode = pathMap.get(parentPath);
-            parentNode?.children?.push(node);
-          } else {
-            tree.push(node);
-          }
-
-          pathMap.set(currentPath, node);
-        }
+        });
       });
-    });
 
     return tree;
-  }, [messages]);
+  }, [messages, searchText, token]);
 
   return (
-    <div style={{ padding: '16px' }}>
-      <Search
-        placeholder="Search topics..."
-        style={{ marginBottom: 16 }}
-      />
+    <div>
+      <div style={{ padding: '16px' }}>
+        <Search
+          placeholder="Search topics..."
+          allowClear
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ 
+            borderRadius: token.borderRadius,
+          }}
+        />
+      </div>
       <Tree
         treeData={buildTree}
-        defaultExpandAll
-        className="topic-tree"
+        selectedKeys={selectedTopic ? [selectedTopic] : []}
+        onSelect={(keys) => selectTopic(keys[0]?.toString() || null)}
         style={{ 
-          overflow: 'auto',
-          maxHeight: 'calc(100vh - 180px)'
+          padding: '0 16px 16px',
         }}
       />
     </div>
