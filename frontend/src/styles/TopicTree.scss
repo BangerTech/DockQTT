@@ -1,0 +1,15 @@
+.topic-tree {
+  padding: 16px;
+  
+  .ant-tree {
+    .ant-tree-node-content-wrapper {
+      &:hover {
+        background-color: var(--hover-bg);
+      }
+    }
+    
+    .ant-tree-node-selected {
+      background-color: var(--selected-bg) !important;
+    }
+  }
+} 

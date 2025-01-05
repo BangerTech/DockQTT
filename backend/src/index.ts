@@ -1,34 +1,95 @@
 import express from 'express';
 import { createServer } from 'http';
-import { WebSocketServer } from 'ws';
+import { Server } from 'socket.io';
 import cors from 'cors';
-import { MqttHandler } from './mqtt-handler';
+import { MqttService } from './services/mqtt.service';
+import { ConnectionConfig } from './types';
 
 const app = express();
-const server = createServer(app);
-const wss = new WebSocketServer({ server, path: '/ws' });
+const httpServer = createServer(app);
 
-app.use(cors());
+// CORS-Konfiguration aktualisieren
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://192.168.2.86:3000',
+  'http://127.0.0.1:3000'
+];
+
+// CORS für Express
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
+// CORS für Socket.IO
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
+const mqttService = new MqttService(io);
+
 app.use(express.json());
 
-const mqttHandler = new MqttHandler(wss);
+// Health check endpoint
+app.get('/health', (_, res) => {
+  res.json({ status: 'ok' });
+});
 
-app.post('/connect', async (req: express.Request, res: express.Response) => {
-  console.log('Received connection request:', req.body);
-  
-  const { host, port, username, password } = req.body;
+// MQTT connection endpoint
+app.post('/api/connect', async (req, res) => {
   try {
-    await mqttHandler.connect({ host, port, username, password });
+    const config = req.body as ConnectionConfig;
+    await mqttService.connect(config);
     res.json({ success: true });
   } catch (error) {
     console.error('Connection error:', error);
     res.status(500).json({ 
-      error: error instanceof Error ? error.message : 'An unknown error occurred' 
+      error: 'Connection failed',
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });
 
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-server.listen(PORT, '0.0.0.0', () => {
+// MQTT publish endpoint
+app.post('/api/publish', (req, res) => {
+  try {
+    const { topic, message } = req.body;
+    mqttService.publish(topic, message);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to publish message' });
+  }
+});
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('Client connected');
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
+const PORT = process.env.PORT || 4000;
+httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  httpServer.close(() => {
+    mqttService.disconnect();
+    process.exit(0);
+  });
 }); 

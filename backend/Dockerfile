@@ -2,17 +2,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Kopiere package.json und installiere Abhängigkeiten
+# Installiere dependencies zuerst für besseres Caching
 COPY package*.json ./
 RUN npm install
 
-# Kopiere den Rest
-COPY tsconfig.json ./
-COPY src ./src
+# Kopiere den Rest der Anwendung
+COPY . .
 
-# TypeScript kompilieren
-RUN npm run build
-
-EXPOSE 3000
-
+EXPOSE 4000
+# Verwende npm run dev für Entwicklung mit Hot-Reload
 CMD ["npm", "run", "dev"] 

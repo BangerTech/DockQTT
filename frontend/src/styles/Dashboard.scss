@@ -1,0 +1,35 @@
+.dashboard-container {
+  height: 100vh;
+  
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    background: var(--header-bg);
+    
+    h4 {
+      color: var(--text-primary);
+      margin: 0;
+    }
+  }
+
+  .dashboard-sider {
+    background: var(--sider-bg);
+    border-right: 1px solid var(--border-color);
+    
+    .ant-tree {
+      background: transparent;
+    }
+  }
+
+  .dashboard-content {
+    padding: 24px;
+    background: var(--content-bg);
+    
+    .message-viewer {
+      height: 100%;
+      overflow: auto;
+    }
+  }
+} 

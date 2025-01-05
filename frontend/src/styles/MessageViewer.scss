@@ -1,0 +1,22 @@
+.message-list {
+  .message-item {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+    
+    pre {
+      margin: 8px 0 0;
+      padding: 12px;
+      background: var(--code-bg);
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+  }
+}
+
+.ant-table {
+  pre {
+    margin: 0;
+    max-height: 200px;
+    overflow: auto;
+  }
+} 
