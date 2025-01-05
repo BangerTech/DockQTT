@@ -122,7 +122,7 @@ export const Welcome: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean)
               marginBottom: '16px' 
             }} />
             <Title level={2} style={{ margin: 0 }}>
-              MQTT Explorer
+              DockQTT
             </Title>
             <Text type="secondary">
               Connect to your MQTT broker

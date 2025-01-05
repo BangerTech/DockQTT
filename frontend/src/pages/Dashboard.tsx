@@ -58,7 +58,7 @@ export const Dashboard: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolea
           color: token.colorText,
           textAlign: 'center',
         }}>
-          MQTT Explorer
+          DockQTT
         </Title>
 
         <div style={{ 
