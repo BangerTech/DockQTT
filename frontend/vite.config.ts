@@ -22,12 +22,13 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://192.168.2.86:4000',
+        target: 'http://backend:4000',
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'http://192.168.2.86:4000',
+        target: 'http://backend:4000',
         ws: true,
+        changeOrigin: true,
       },
     },
   },

@@ -5,6 +5,7 @@ import { ConnectionConfig } from '../types';
 import { WifiOutlined, MoonOutlined, SunOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useMqttStore } from '../store/mqttStore';
 import '../styles/ThemeToggle.css';
+import { ThemeSwitch } from '../components/ThemeSwitch';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -274,19 +275,10 @@ export const Welcome: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean)
           </Form>
         </Card>
 
-        <Button
-          type="text"
-          icon={darkMode ? <SunOutlined /> : <MoonOutlined />}
-          onClick={() => {
-            setDarkMode(!darkMode);
-            console.log('Switching theme to:', !darkMode ? 'dark' : 'light'); // Debug-Log
-          }}
-          className="theme-toggle"
-          style={{
-            color: darkMode ? token.colorTextSecondary : token.colorText,
-            background: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
-            boxShadow: token.boxShadowTertiary,
-          }}
+        <ThemeSwitch 
+          darkMode={darkMode} 
+          onChange={setDarkMode}
+          style={{ marginLeft: 'auto' }}
         />
       </div>
     </div>

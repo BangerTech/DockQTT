@@ -2,32 +2,28 @@ version: "3.8"
 
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://192.168.2.86:4000
-      - HOST=0.0.0.0
-      - CHOKIDAR_USEPOLLING=true
+      - VITE_BACKEND_URL=http://backend:4000
     networks:
       - mqtt-network
-    depends_on:
-      - backend
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "4000:4000"
     volumes:
       - ./backend:/app
       - /app/node_modules
-    environment:
-      - NODE_ENV=development
-      - PORT=4000
-      - CORS_ORIGIN=http://192.168.2.86:3000
     networks:
       - mqtt-network
 

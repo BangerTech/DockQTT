@@ -1,12 +1,12 @@
 import express from 'express';
-import { createServer } from 'http';
+import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { MqttService } from './services/mqtt.service';
 import { ConnectionConfig } from './types';
 
 const app = express();
-const httpServer = createServer(app);
+const server = http.createServer(app);
 
 // CORS-Konfiguration aktualisieren
 const allowedOrigins = [
@@ -28,12 +28,12 @@ app.use(cors({
 }));
 
 // CORS für Socket.IO
-const io = new Server(httpServer, {
+const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
-    methods: ['GET', 'POST'],
+    origin: ["http://localhost:3000", "http://frontend:3000"],
+    methods: ["GET", "POST"],
     credentials: true
-  }
+  },
 });
 
 const mqttService = new MqttService(io);
@@ -73,22 +73,18 @@ app.post('/api/publish', (req, res) => {
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-  console.log('Client connected');
-
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
-  });
+  console.log('a user connected');
+  // Handle socket events here
 });
 
-const PORT = process.env.PORT || 4000;
-httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(4000, () => {
+  console.log('Server running on port 4000');
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received. Shutting down gracefully...');
-  httpServer.close(() => {
+  server.close(() => {
     mqttService.disconnect();
     process.exit(0);
   });

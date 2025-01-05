@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Tree, Input, theme } from 'antd';
+import { Tree, Input, Badge, theme } from 'antd';
 import { DataNode } from 'antd/es/tree';
 import { MqttMessage } from '../types';
 import { useMqttStore } from '../store/mqttStore';
@@ -7,7 +7,7 @@ import { useMqttStore } from '../store/mqttStore';
 const { Search } = Input;
 
 interface TopicTreeProps {
-  messages: Record<string, MqttMessage>;
+  messages: Record<string, MqttMessage[]>;
 }
 
 export const TopicTree: React.FC<TopicTreeProps> = ({ messages }) => {
@@ -23,7 +23,7 @@ export const TopicTree: React.FC<TopicTreeProps> = ({ messages }) => {
       .filter(([topic]) => 
         !searchText || topic.toLowerCase().includes(searchText.toLowerCase())
       )
-      .forEach(([topic, msg]) => {
+      .forEach(([topic, msgs]) => {
         const parts = topic.split('/');
         let currentPath = '';
         
@@ -43,17 +43,22 @@ export const TopicTree: React.FC<TopicTreeProps> = ({ messages }) => {
               node.isLeaf = true;
               node.title = (
                 <div style={{ 
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                   padding: '4px 0',
-                  fontSize: '14px',
+                  width: '100%',
                 }}>
-                  <div style={{ fontWeight: 500 }}>{part}</div>
-                  <div style={{ 
-                    color: token.colorTextSecondary,
-                    fontSize: '12px',
-                    marginTop: '2px',
-                  }}>
-                    {msg.payload}
-                  </div>
+                  <span style={{ fontWeight: 500 }}>{part}</span>
+                  {msgs.length > 0 && (
+                    <Badge 
+                      count={msgs.length} 
+                      style={{ 
+                        backgroundColor: token.colorSuccess,
+                        marginLeft: '8px',
+                      }} 
+                    />
+                  )}
                 </div>
               );
             }
@@ -75,22 +80,22 @@ export const TopicTree: React.FC<TopicTreeProps> = ({ messages }) => {
 
   return (
     <div>
-      <div style={{ padding: '16px' }}>
-        <Search
-          placeholder="Search topics..."
-          allowClear
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ 
-            borderRadius: token.borderRadius,
-          }}
-        />
-      </div>
+      <Search
+        placeholder="Search topics..."
+        allowClear
+        onChange={(e) => setSearchText(e.target.value)}
+        style={{ 
+          marginBottom: '16px',
+          borderRadius: token.borderRadius,
+        }}
+      />
       <Tree
         treeData={buildTree}
         selectedKeys={selectedTopic ? [selectedTopic] : []}
-        onSelect={(keys) => selectTopic(keys[0]?.toString() || null)}
-        style={{ 
-          padding: '0 16px 16px',
+        onSelect={(keys) => {
+          if (keys.length > 0) {
+            selectTopic(keys[0]?.toString() || null);
+          }
         }}
       />
     </div>
