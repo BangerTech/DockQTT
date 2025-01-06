@@ -5,7 +5,8 @@
 ![Next.js](https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)
 [![License](https://img.shields.io/github/license/BangerTech/DockQTT?style=for-the-badge)](LICENSE)
 
-![dockqtt](https://github.com/user-attachments/assets/be8c479f-622c-42a3-9cb5-c96fe09d0d34)
+![dockqtt](https://github.com/user-attachments/assets/155f88c6-53a5-4e1d-8fc4-dd2c1c4c2f70)
+
 
 
 > 🐝 A modern web interface for exploring and managing MQTT topics and messages
