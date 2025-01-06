@@ -6,6 +6,7 @@ import { WifiOutlined, MoonOutlined, SunOutlined, DeleteOutlined } from '@ant-de
 import { useMqttStore } from '../store/mqttStore';
 import '../styles/ThemeToggle.css';
 import { ThemeSwitch } from '../components/ThemeSwitch';
+import dockqttLogo from '../images/dockqtt.png';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -116,15 +117,17 @@ export const Welcome: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean)
           }}
         >
           <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <WifiOutlined style={{ 
-              fontSize: '48px', 
-              color: token.colorPrimary,
-              marginBottom: '16px' 
-            }} />
-            <Title level={2} style={{ margin: 0 }}>
-              DockQTT
-            </Title>
-            <Text type="secondary">
+            <img 
+              src={dockqttLogo} 
+              alt="DockQTT Logo" 
+              style={{ 
+                height: '48px',
+                marginBottom: '16px',
+                display: 'block',
+                margin: '0 auto 16px auto'
+              }} 
+            />
+            <Text type="secondary" style={{ display: 'block' }}>
               Connect to your MQTT broker
             </Text>
           </div>

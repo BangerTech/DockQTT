@@ -7,6 +7,7 @@ import { DisconnectOutlined } from '@ant-design/icons';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { ThemeSwitch } from '../components/ThemeSwitch';
 import '../styles/ThemeSwitch.css';
+import dockqttLogo from '../images/dockqtt.png';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -53,13 +54,14 @@ export const Dashboard: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolea
           </Button>
         </Space>
 
-        <Title level={3} style={{ 
-          margin: 0, 
-          color: token.colorText,
-          textAlign: 'center',
-        }}>
-          DockQTT
-        </Title>
+        <img 
+          src={dockqttLogo} 
+          alt="DockQTT Logo" 
+          style={{ 
+            height: '32px',
+            margin: 0,
+          }}
+        />
 
         <div style={{ 
           display: 'flex', 

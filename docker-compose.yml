@@ -13,7 +13,7 @@ services:
     depends_on:
       - backend
     networks:
-      - mqtt-network
+      - dockqtt-network
 
   backend:
     build:
@@ -25,8 +25,8 @@ services:
       - ./backend:/app
       - /app/node_modules
     networks:
-      - mqtt-network
+      - dockqtt-network
 
 networks:
-  mqtt-network:
+  dockqtt-network:
     driver: bridge
