@@ -8,8 +8,8 @@ import { useMqttStore } from '../store/mqttStore';
 import { WifiOutlined, DisconnectOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dockqttLogo from '../images/dockqtt.png';
-import './Dashboard.css';
 import { buildTopicTree } from '../utils/topicUtils';
+import './Dashboard.css';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
@@ -32,15 +32,6 @@ export const Dashboard: React.FC = () => {
     }
   }, [connected, navigate]);
 
-  useEffect(() => {
-    console.log('Current MQTT State:', {
-      connected,
-      currentConnection,
-      topicMessages,
-      selectedTopic
-    });
-  }, [connected, currentConnection, topicMessages, selectedTopic]);
-
   const handleDisconnect = () => {
     disconnect();
     navigate('/');
@@ -54,6 +45,24 @@ export const Dashboard: React.FC = () => {
   const topicTree = useMemo(() => {
     return buildTopicTree(topicMessages);
   }, [topicMessages]);
+
+  // Finde das ausgewählte Topic-Node
+  const selectedTopicNode = useMemo(() => {
+    if (!selectedTopic) return null;
+    
+    function findNode(nodes: TopicNode[]): TopicNode | null {
+      for (const node of nodes) {
+        if (node.path === selectedTopic) {
+          return node;
+        }
+        const found = findNode(Object.values(node.children));
+        if (found) return found;
+      }
+      return null;
+    }
+
+    return findNode(topicTree);
+  }, [selectedTopic, topicTree]);
 
   return (
     <Layout className="dashboard-layout">
@@ -93,23 +102,15 @@ export const Dashboard: React.FC = () => {
             <TopicTree 
               topics={topicTree} 
               onSelect={handleTopicSelect}
+              selectedTopic={selectedTopic}
             />
           </Col>
           <Col span={16}>
-            {selectedTopic && topicMessages[selectedTopic]?.[0] ? (
-              <TopicDetails
-                topic={selectedTopic}
-                payload={topicMessages[selectedTopic][0].payload}
-                timestamp={new Date(topicMessages[selectedTopic][0].timestamp).toISOString()}
-                retained={topicMessages[selectedTopic][0].retain}
-                qos={topicMessages[selectedTopic][0].qos}
-              />
+            {selectedTopicNode ? (
+              <TopicDetails topic={selectedTopicNode} />
             ) : (
               <div className="no-topic-selected">
-                {selectedTopic 
-                  ? "No messages received for this topic yet" 
-                  : "Select a topic to view details"
-                }
+                Select a topic to view details
               </div>
             )}
           </Col>

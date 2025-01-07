@@ -1,9 +1,11 @@
-import React, { useMemo } from 'react';
-import { Tree, Typography, Badge, Tooltip } from 'antd';
-import { FolderOutlined, FileOutlined } from '@ant-design/icons';
+import React, { useMemo, useState } from 'react';
+import { Tree, Typography, Badge, Tooltip, Input, Space } from 'antd';
+import { FolderOutlined, FileOutlined, SearchOutlined } from '@ant-design/icons';
 import { TopicNode } from '../types';
 import { formatTopicValue, formatTimestamp } from '../utils/topicUtils';
 import './TopicTree.css';
+
+const { Search } = Input;
 
 interface TopicTreeProps {
   topics: TopicNode[];
@@ -12,6 +14,31 @@ interface TopicTreeProps {
 }
 
 export const TopicTree: React.FC<TopicTreeProps> = ({ topics, onSelect, selectedTopic }) => {
+  const [searchText, setSearchText] = useState('');
+
+  const filteredTreeData = useMemo(() => {
+    function filterNodes(nodes: TopicNode[]): TopicNode[] {
+      return nodes
+        .map(node => {
+          const matchesSearch = node.path.toLowerCase().includes(searchText.toLowerCase());
+          const filteredChildren = filterNodes(Object.values(node.children));
+          
+          if (matchesSearch || filteredChildren.length > 0) {
+            return {
+              ...node,
+              children: filteredChildren.length > 0 ? Object.fromEntries(
+                filteredChildren.map(child => [child.path, child])
+              ) : {}
+            };
+          }
+          return null;
+        })
+        .filter((node): node is TopicNode => node !== null);
+    }
+
+    return filterNodes(topics);
+  }, [topics, searchText]);
+
   const treeData = useMemo(() => {
     function convertToAntdTree(nodes: TopicNode[]): any[] {
       return nodes.map(node => ({
@@ -36,26 +63,34 @@ export const TopicTree: React.FC<TopicTreeProps> = ({ topics, onSelect, selected
             )}
           </div>
         ),
-        isLeaf: node.children.length === 0,
-        children: convertToAntdTree(node.children)
+        isLeaf: Object.keys(node.children).length === 0,
+        children: convertToAntdTree(Object.values(node.children))
       }));
     }
 
-    return convertToAntdTree(topics);
-  }, [topics]);
+    return convertToAntdTree(filteredTreeData);
+  }, [filteredTreeData]);
 
   return (
     <div className="topic-tree">
-      <Tree
-        showIcon
-        defaultExpandAll
-        selectedKeys={selectedTopic ? [selectedTopic] : []}
-        onSelect={(_, { node }) => onSelect(node.key as string)}
-        treeData={treeData}
-        icon={({ expanded }) => 
-          expanded ? <FolderOutlined /> : <FileOutlined />
-        }
-      />
+      <Space direction="vertical" style={{ width: '100%' }}>
+        <Search
+          placeholder="Search topics..."
+          allowClear
+          prefix={<SearchOutlined />}
+          onChange={e => setSearchText(e.target.value)}
+        />
+        <Tree
+          showIcon
+          defaultExpandAll
+          selectedKeys={selectedTopic ? [selectedTopic] : []}
+          onSelect={(_, { node }) => onSelect(node.key as string)}
+          treeData={treeData}
+          icon={({ expanded }) => 
+            expanded ? <FolderOutlined /> : <FileOutlined />
+          }
+        />
+      </Space>
     </div>
   );
 }; 

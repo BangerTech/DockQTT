@@ -8,8 +8,15 @@ const socket = io('/', {
   reconnectionDelay: 1000
 });
 
+let reconnectTimer: NodeJS.Timeout | null = null;
+
 socket.on('connect', () => {
   console.log('Socket connected');
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+  
   // Wenn die Socket-Verbindung wiederhergestellt wird, prüfen wir den Store-Status
   const store = useMqttStore.getState();
   if (store.currentConnection && !store.connected) {
@@ -19,20 +26,24 @@ socket.on('connect', () => {
 
 socket.on('disconnect', () => {
   console.log('Socket disconnected');
-  useMqttStore.getState().setConnected(false);
+  // Verzögere das Setzen des Disconnected-Status um eine kurze Zeit
+  reconnectTimer = setTimeout(() => {
+    const store = useMqttStore.getState();
+    if (store.connected) {
+      store.setConnected(false);
+    }
+  }, 2000); // 2 Sekunden Verzögerung
 });
 
 socket.on('mqtt:message', (data: { topic: string, payload: any, timestamp: number }) => {
-  console.log('Received MQTT message:', data);
-  
-  const message: MqttMessage = {
-    payload: data.payload,
-    timestamp: new Date(data.timestamp).toISOString(),
-    retain: false, // Diese Information kommt vom Backend
-    qos: 0 // Diese Information kommt vom Backend
-  };
-
   try {
+    const message: MqttMessage = {
+      payload: data.payload,
+      timestamp: new Date(data.timestamp).toISOString(),
+      retain: false,
+      qos: 0
+    };
+
     // Versuche JSON zu parsen, wenn es ein String ist
     if (typeof data.payload === 'string') {
       try {
@@ -42,11 +53,6 @@ socket.on('mqtt:message', (data: { topic: string, payload: any, timestamp: numbe
         message.payload = data.payload;
       }
     }
-
-    console.log('Processing message:', {
-      topic: data.topic,
-      message: message
-    });
 
     useMqttStore.getState().addMessage(data.topic, message);
   } catch (error) {
@@ -83,6 +89,10 @@ export const connectToBroker = async (config: ConnectionConfig) => {
 };
 
 export const disconnectFromBroker = () => {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
   socket.emit('mqtt:disconnect');
   useMqttStore.getState().disconnect();
 }; 

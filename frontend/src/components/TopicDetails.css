@@ -4,12 +4,7 @@
   flex-direction: column;
 }
 
-.topic-header {
-  margin-bottom: 16px;
-}
-
-.raw-payload,
-.json-view {
+.json-payload {
   background: var(--code-background);
   padding: 12px;
   border-radius: 6px;
@@ -17,19 +12,17 @@
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
+  max-height: 500px;
+  overflow: auto;
 }
 
-.json-view {
-  color: var(--text-primary);
+.ant-table-wrapper {
+  background: var(--background-color);
+  border-radius: 8px;
 }
 
-.metadata {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.metadata-item {
-  display: flex;
-  gap: 8px;
+.ant-table-cell pre {
+  margin: 0;
+  max-height: 100px;
+  overflow: auto;
 } 
