@@ -1,0 +1,53 @@
+.dashboard-layout {
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  background: var(--background-color);
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-logo {
+  height: 32px;
+  width: auto;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+}
+
+.dashboard-content {
+  padding: 24px;
+  height: calc(100vh - 64px);
+}
+
+.no-topic-selected {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+  font-size: 16px;
+  background: var(--background-color);
+  border-radius: 8px;
+  padding: 24px;
+} 

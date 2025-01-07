@@ -7,6 +7,7 @@ import { useMqttStore } from '../store/mqttStore';
 import '../styles/ThemeToggle.css';
 import { ThemeSwitch } from '../components/ThemeSwitch';
 import dockqttLogo from '../images/dockqtt.png';
+import { useTheme } from '../hooks/useTheme';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -20,7 +21,8 @@ interface ConnectionConfig {
   save?: boolean;
 }
 
-export const Welcome: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean) => void }> = ({ darkMode, setDarkMode }) => {
+export const Welcome: React.FC = () => {
+  const { darkMode, setDarkMode } = useTheme();
   const { token } = theme.useToken();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);

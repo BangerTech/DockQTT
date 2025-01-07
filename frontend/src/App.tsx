@@ -1,19 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Welcome } from './pages/Welcome';
-import { Dashboard } from './pages/Dashboard';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { AppRoutes } from './routes';
+import { useTheme } from './hooks/useTheme';
+import './services/mqtt'; // Import the socket service
 
-export const App: React.FC = () => {
-  const [darkMode, setDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    return savedMode ? JSON.parse(savedMode) : false;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
+const AppContent: React.FC = () => {
+  const { darkMode } = useTheme();
 
   return (
     <ConfigProvider
@@ -25,13 +19,18 @@ export const App: React.FC = () => {
         },
       }}
     >
-      <Router>
-        <Routes>
-          <Route path="/" element={<Welcome darkMode={darkMode} setDarkMode={setDarkMode} />} />
-          <Route path="/dashboard" element={<Dashboard darkMode={darkMode} setDarkMode={setDarkMode} />} />
-        </Routes>
-      </Router>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
     </ConfigProvider>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 };
 

@@ -3,20 +3,25 @@ export interface ConnectionConfig {
   port: number;
   username?: string;
   password?: string;
-  save?: boolean;
+  clientId?: string;
 }
 
 export interface MqttMessage {
-  topic: string;
   payload: any;
-  timestamp: number;
+  timestamp: string;
   retain: boolean;
   qos: number;
+}
+
+export interface TopicMessage extends MqttMessage {
+  topic: string;
 }
 
 export interface TopicNode {
   name: string;
   path: string;
-  children: TopicNode[];
+  children: { [key: string]: TopicNode };
   messages: MqttMessage[];
+  unreadCount: number;
+  lastUpdate: number;
 } 

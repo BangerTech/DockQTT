@@ -1,0 +1,41 @@
+.topic-tree {
+  background: var(--background-color);
+  border-radius: 8px;
+  padding: 16px;
+  height: 100%;
+  overflow: auto;
+}
+
+.topic-node {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.topic-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.topic-title {
+  font-family: monospace;
+  font-weight: 500;
+}
+
+.topic-value {
+  font-size: 0.85em;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+}
+
+.ant-tree-node-content-wrapper {
+  width: 100%;
+} 

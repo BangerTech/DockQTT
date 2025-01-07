@@ -1,53 +1,37 @@
-import create from 'zustand';
-import { MqttMessage, ConnectionConfig } from '../types';
+import { create } from 'zustand';
+import { ConnectionConfig, MqttMessage } from '../types';
 
-interface MqttState {
-  messages: MqttMessage[];
-  topicMessages: Record<string, MqttMessage[]>;
-  selectedTopic: string | null;
+interface MqttStore {
   connected: boolean;
   currentConnection: ConnectionConfig | null;
-  addMessage: (message: MqttMessage) => void;
+  topicMessages: Record<string, MqttMessage[]>;
+  selectedTopic: string | null;
   setConnected: (status: boolean) => void;
+  setCurrentConnection: (config: ConnectionConfig | null) => void;
+  addMessage: (topic: string, message: MqttMessage) => void;
   selectTopic: (topic: string | null) => void;
   disconnect: () => void;
-  setCurrentConnection: (config: ConnectionConfig) => void;
 }
 
-export const useMqttStore = create<MqttState>((set, get) => ({
-  messages: [],
-  topicMessages: {},
-  selectedTopic: null,
+export const useMqttStore = create<MqttStore>((set) => ({
   connected: false,
   currentConnection: null,
-  addMessage: (message) => {
-    console.log('Store adding message:', message);
-    set((state) => {
-      const existingMessages = state.topicMessages[message.topic] || [];
-      const updatedMessages = [message, ...existingMessages].slice(0, 100);
-      
-      console.log('Updated topic messages:', {
-        topic: message.topic,
-        messageCount: updatedMessages.length
-      });
-      
-      return {
-        messages: [message, ...state.messages].slice(0, 1000),
-        topicMessages: {
-          ...state.topicMessages,
-          [message.topic]: updatedMessages,
-        },
-      };
-    });
-  },
+  topicMessages: {},
+  selectedTopic: null,
   setConnected: (status) => set({ connected: status }),
+  setCurrentConnection: (config) => set({ currentConnection: config }),
+  addMessage: (topic, message) => 
+    set((state) => ({
+      topicMessages: {
+        ...state.topicMessages,
+        [topic]: [message, ...(state.topicMessages[topic] || [])].slice(0, 100), // Keep last 100 messages
+      },
+    })),
   selectTopic: (topic) => set({ selectedTopic: topic }),
   disconnect: () => set({ 
     connected: false, 
-    messages: [], 
-    topicMessages: {}, 
-    selectedTopic: null,
-    currentConnection: null 
+    currentConnection: null, 
+    topicMessages: {},
+    selectedTopic: null 
   }),
-  setCurrentConnection: (config) => set({ currentConnection: config }),
 })); 

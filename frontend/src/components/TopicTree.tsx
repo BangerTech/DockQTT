@@ -1,122 +1,60 @@
-import React, { useMemo, useState } from 'react';
-import { Tree, Input, Badge, theme } from 'antd';
-import { DataNode } from 'antd/es/tree';
-import { MqttMessage } from '../types';
-import { useMqttStore } from '../store/mqttStore';
-
-const { Search } = Input;
+import React, { useMemo } from 'react';
+import { Tree, Typography, Badge, Tooltip } from 'antd';
+import { FolderOutlined, FileOutlined } from '@ant-design/icons';
+import { TopicNode } from '../types';
+import { formatTopicValue, formatTimestamp } from '../utils/topicUtils';
+import './TopicTree.css';
 
 interface TopicTreeProps {
-  messages: Record<string, MqttMessage[]>;
+  topics: TopicNode[];
+  onSelect: (topic: string) => void;
+  selectedTopic?: string;
 }
 
-export const TopicTree: React.FC<TopicTreeProps> = ({ messages }) => {
-  const { token } = theme.useToken();
-  const [searchText, setSearchText] = useState('');
-  const { selectTopic, selectedTopic } = useMqttStore();
+export const TopicTree: React.FC<TopicTreeProps> = ({ topics, onSelect, selectedTopic }) => {
+  const treeData = useMemo(() => {
+    function convertToAntdTree(nodes: TopicNode[]): any[] {
+      return nodes.map(node => ({
+        key: node.path,
+        title: (
+          <div className="topic-node">
+            <div className="topic-info">
+              <span className="topic-title">{node.name}</span>
+              {node.messages.length > 0 && (
+                <Tooltip title={formatTimestamp(node.lastUpdate)}>
+                  <Typography.Text className="topic-value" type="secondary">
+                    {formatTopicValue(node.messages[0])}
+                  </Typography.Text>
+                </Tooltip>
+              )}
+            </div>
+            {node.unreadCount > 0 && (
+              <Badge 
+                count={node.unreadCount}
+                style={{ backgroundColor: '#52c41a' }}
+              />
+            )}
+          </div>
+        ),
+        isLeaf: node.children.length === 0,
+        children: convertToAntdTree(node.children)
+      }));
+    }
 
-  console.log('TopicTree rendering with messages:', {
-    topicCount: Object.keys(messages).length,
-    topics: Object.keys(messages)
-  });
-
-  const buildTree = useMemo(() => {
-    console.log('Building tree with messages:', messages);
-    const tree: DataNode[] = [];
-    const pathMap = new Map<string, DataNode>();
-
-    Object.entries(messages)
-      .filter(([topic]) => 
-        !searchText || topic.toLowerCase().includes(searchText.toLowerCase())
-      )
-      .forEach(([topic, msgs]) => {
-        const parts = topic.split('/');
-        let currentPath = '';
-        
-        parts.forEach((part, index) => {
-          const isLast = index === parts.length - 1;
-          const parentPath = currentPath;
-          currentPath = currentPath ? `${currentPath}/${part}` : part;
-          
-          if (!pathMap.has(currentPath)) {
-            const node: DataNode = {
-              title: part,
-              key: currentPath,
-              children: [],
-            };
-
-            if (isLast) {
-              node.isLeaf = true;
-              const latestMessage = msgs[0];
-              node.title = (
-                <div style={{ 
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '4px 0',
-                  width: '100%',
-                }}>
-                  <div>
-                    <div style={{ fontWeight: 500 }}>{part}</div>
-                    {latestMessage && (
-                      <div style={{ 
-                        color: token.colorTextSecondary,
-                        fontSize: '12px',
-                        marginTop: '2px',
-                      }}>
-                        {typeof latestMessage.payload === 'object' 
-                          ? JSON.stringify(latestMessage.payload)
-                          : latestMessage.payload}
-                      </div>
-                    )}
-                  </div>
-                  {msgs.length > 0 && (
-                    <Badge 
-                      count={msgs.length} 
-                      style={{ 
-                        backgroundColor: token.colorSuccess,
-                        marginLeft: '8px',
-                      }} 
-                    />
-                  )}
-                </div>
-              );
-            }
-
-            if (parentPath) {
-              const parentNode = pathMap.get(parentPath);
-              parentNode?.children?.push(node);
-            } else {
-              tree.push(node);
-            }
-
-            pathMap.set(currentPath, node);
-          }
-        });
-      });
-
-    return tree;
-  }, [messages, searchText, token]);
+    return convertToAntdTree(topics);
+  }, [topics]);
 
   return (
-    <div>
-      <Search
-        placeholder="Search topics..."
-        allowClear
-        onChange={(e) => setSearchText(e.target.value)}
-        style={{ 
-          marginBottom: '16px',
-          borderRadius: token.borderRadius,
-        }}
-      />
+    <div className="topic-tree">
       <Tree
-        treeData={buildTree}
+        showIcon
+        defaultExpandAll
         selectedKeys={selectedTopic ? [selectedTopic] : []}
-        onSelect={(keys) => {
-          if (keys.length > 0) {
-            selectTopic(keys[0]?.toString() || null);
-          }
-        }}
+        onSelect={(_, { node }) => onSelect(node.key as string)}
+        treeData={treeData}
+        icon={({ expanded }) => 
+          expanded ? <FolderOutlined /> : <FileOutlined />
+        }
       />
     </div>
   );

@@ -1,130 +1,120 @@
-import React from 'react';
-import { Layout, Typography, theme, Badge, Button, Space, Card } from 'antd';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Layout, Row, Col, Typography, Button } from 'antd';
 import { TopicTree } from '../components/TopicTree';
-import { MessageViewer } from '../components/MessageViewer';
-import { useMqttStore } from '../store/mqttStore';
-import { DisconnectOutlined } from '@ant-design/icons';
-import { useWebSocket } from '../hooks/useWebSocket';
+import { TopicDetails } from '../components/TopicDetails';
 import { ThemeSwitch } from '../components/ThemeSwitch';
-import '../styles/ThemeSwitch.css';
+import { useTheme } from '../hooks/useTheme';
+import { useMqttStore } from '../store/mqttStore';
+import { WifiOutlined, DisconnectOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import dockqttLogo from '../images/dockqtt.png';
+import './Dashboard.css';
+import { buildTopicTree } from '../utils/topicUtils';
 
 const { Header, Content } = Layout;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
-export const Dashboard: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean) => void }> = ({ darkMode, setDarkMode }) => {
-  const { token } = theme.useToken();
-  const { topicMessages, selectedTopic, connected, disconnect, currentConnection } = useMqttStore();
-  
-  console.log('Dashboard rendering with:', {
-    connected,
+export const Dashboard: React.FC = () => {
+  const { darkMode, setDarkMode } = useTheme();
+  const navigate = useNavigate();
+  const { 
+    connected, 
+    currentConnection,
+    topicMessages,
     selectedTopic,
-    topicCount: Object.keys(topicMessages).length,
-    topics: Object.keys(topicMessages)
-  });
+    selectTopic,
+    disconnect 
+  } = useMqttStore();
 
-  useWebSocket();
+  useEffect(() => {
+    if (!connected) {
+      navigate('/');
+    }
+  }, [connected, navigate]);
+
+  useEffect(() => {
+    console.log('Current MQTT State:', {
+      connected,
+      currentConnection,
+      topicMessages,
+      selectedTopic
+    });
+  }, [connected, currentConnection, topicMessages, selectedTopic]);
+
+  const handleDisconnect = () => {
+    disconnect();
+    navigate('/');
+  };
+
+  const handleTopicSelect = (topic: string) => {
+    selectTopic(topic);
+  };
+
+  // Konvertiere die flachen Topics in eine Baumstruktur
+  const topicTree = useMemo(() => {
+    return buildTopicTree(topicMessages);
+  }, [topicMessages]);
 
   return (
-    <Layout style={{ height: '100vh', background: token.colorBgContainer }}>
-      <Header style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr auto 1fr',
-        alignItems: 'center',
-        padding: '0 24px',
-        background: token.colorBgElevated,
-        borderBottom: `1px solid ${token.colorBorder}`,
-        height: '64px',
-      }}>
-        <Space>
-          <Badge status={connected ? 'success' : 'error'} text={connected ? 'Connected' : 'Disconnected'} />
-          {currentConnection && (
-            <Text type="secondary" style={{ fontSize: '14px' }}>
-              {currentConnection.url}:{currentConnection.port}
-              {currentConnection.username && ` (${currentConnection.username})`}
-            </Text>
-          )}
+    <Layout className="dashboard-layout">
+      <Header className="dashboard-header">
+        <div className="header-left">
+          <img 
+            src={dockqttLogo} 
+            alt="DockQTT Logo" 
+            className="header-logo"
+          />
+          <Title level={4} style={{ margin: 0, color: 'inherit' }}>
+            {currentConnection?.url}:{currentConnection?.port}
+          </Title>
+        </div>
+        <div className="header-right">
+          <div className="connection-status">
+            {connected ? (
+              <WifiOutlined style={{ color: '#52c41a' }} />
+            ) : (
+              <DisconnectOutlined style={{ color: '#ff4d4f' }} />
+            )}
+            <span>{connected ? 'Connected' : 'Disconnected'}</span>
+          </div>
+          <ThemeSwitch darkMode={darkMode} onChange={setDarkMode} />
           <Button 
-            type="link" 
-            icon={<DisconnectOutlined />} 
-            onClick={disconnect}
-            disabled={!connected}
+            danger
+            onClick={handleDisconnect}
+            icon={<DisconnectOutlined />}
           >
             Disconnect
           </Button>
-        </Space>
-
-        <img 
-          src={dockqttLogo} 
-          alt="DockQTT Logo" 
-          style={{ 
-            height: '32px',
-            margin: 0,
-          }}
-        />
-
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'flex-end'
-        }}>
-          <ThemeSwitch darkMode={darkMode} onChange={setDarkMode} />
         </div>
       </Header>
-
-      <Layout style={{ padding: '24px', height: 'calc(100vh - 64px)' }}>
-        <div style={{ 
-          display: 'flex', 
-          gap: '24px',
-          height: '100%',
-          overflow: 'hidden',
-        }}>
-          <Card
-            style={{
-              width: '320px',
-              borderRadius: token.borderRadiusLG,
-              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
-              background: token.colorBgContainer,
-              height: '100%',
-              overflow: 'auto',
-            }}
-            bodyStyle={{ 
-              padding: '16px',
-              height: '100%',
-            }}
-          >
-            <TopicTree messages={topicMessages} />
-          </Card>
-          <Card
-            style={{
-              flex: 1,
-              borderRadius: token.borderRadiusLG,
-              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
-              background: token.colorBgContainer,
-              height: '100%',
-              overflow: 'auto',
-            }}
-            bodyStyle={{ 
-              padding: '16px',
-              height: '100%',
-            }}
-          >
-            {selectedTopic ? (
-              <MessageViewer />
+      <Content className="dashboard-content">
+        <Row gutter={16}>
+          <Col span={8}>
+            <TopicTree 
+              topics={topicTree} 
+              onSelect={handleTopicSelect}
+            />
+          </Col>
+          <Col span={16}>
+            {selectedTopic && topicMessages[selectedTopic]?.[0] ? (
+              <TopicDetails
+                topic={selectedTopic}
+                payload={topicMessages[selectedTopic][0].payload}
+                timestamp={new Date(topicMessages[selectedTopic][0].timestamp).toISOString()}
+                retained={topicMessages[selectedTopic][0].retain}
+                qos={topicMessages[selectedTopic][0].qos}
+              />
             ) : (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                color: token.colorTextSecondary,
-                fontSize: '16px',
-              }}>
-                Select a topic to view messages
+              <div className="no-topic-selected">
+                {selectedTopic 
+                  ? "No messages received for this topic yet" 
+                  : "Select a topic to view details"
+                }
               </div>
             )}
-          </Card>
-        </div>
-      </Layout>
+          </Col>
+        </Row>
+      </Content>
     </Layout>
   );
 }; 
