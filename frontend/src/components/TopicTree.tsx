@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Tree, Typography, Badge, Tooltip, Input, Space } from 'antd';
-import { FolderOutlined, FileOutlined, SearchOutlined, BulbOutlined, DashboardOutlined, SettingOutlined, CheckCircleOutlined, ApiOutlined } from '@ant-design/icons';
+import { SearchOutlined } from '@ant-design/icons';
 import { TopicNode } from '../types';
-import { formatTopicValue, formatTimestamp, TopicType } from '../utils/topicUtils';
+import { formatTopicValue, formatTimestamp } from '../utils/topicUtils';
 import './TopicTree.css';
 
 const { Search } = Input;
@@ -12,45 +12,6 @@ interface TopicTreeProps {
   onSelect: (topic: string) => void;
   selectedTopic?: string;
 }
-
-interface TopicNodeProps {
-  node: TopicNode;
-}
-
-const getTopicIcon = (type: TopicType) => {
-  switch (type) {
-    case 'switch': return <BulbOutlined />;
-    case 'sensor': return <DashboardOutlined />;
-    case 'config': return <SettingOutlined />;
-    case 'status': return <CheckCircleOutlined />;
-    case 'availability': return <ApiOutlined />;
-    default: return <FileOutlined />;
-  }
-};
-
-const TopicNodeComponent: React.FC<TopicNodeProps> = ({ node }) => (
-  <div className="topic-node">
-    <div className="topic-info">
-      <div className="topic-header">
-        {getTopicIcon(node.type)}
-        <span className="topic-title">{node.name}</span>
-      </div>
-      {node.messages.length > 0 && (
-        <Tooltip title={formatTimestamp(node.lastUpdate)}>
-          <Typography.Text className="topic-value" type="secondary">
-            {formatTopicValue(node.messages[0])}
-          </Typography.Text>
-        </Tooltip>
-      )}
-    </div>
-    {node.unreadCount > 0 && (
-      <Badge 
-        count={node.unreadCount}
-        style={{ backgroundColor: '#52c41a' }}
-      />
-    )}
-  </div>
-);
 
 export const TopicTree: React.FC<TopicTreeProps> = ({ topics, onSelect, selectedTopic }) => {
   const [searchText, setSearchText] = useState('');
@@ -85,10 +46,7 @@ export const TopicTree: React.FC<TopicTreeProps> = ({ topics, onSelect, selected
         title: (
           <div className="topic-node">
             <div className="topic-info">
-              <div className="topic-header">
-                {getTopicIcon(node.type)}
-                <span className="topic-title">{node.name}</span>
-              </div>
+              <span className="topic-title">{node.name}</span>
               {node.messages.length > 0 && (
                 <Tooltip title={formatTimestamp(node.lastUpdate)}>
                   <Typography.Text className="topic-value" type="secondary">
@@ -123,14 +81,11 @@ export const TopicTree: React.FC<TopicTreeProps> = ({ topics, onSelect, selected
           onChange={e => setSearchText(e.target.value)}
         />
         <Tree
-          showIcon
+          showLine
           defaultExpandAll
           selectedKeys={selectedTopic ? [selectedTopic] : []}
           onSelect={(_, { node }) => onSelect(node.key as string)}
           treeData={treeData}
-          icon={({ expanded }) => 
-            expanded ? <FolderOutlined /> : <FileOutlined />
-          }
         />
       </Space>
     </div>
