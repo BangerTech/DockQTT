@@ -121,10 +121,11 @@ export const Welcome: React.FC<{ darkMode: boolean, setDarkMode: (mode: boolean)
               src={dockqttLogo} 
               alt="DockQTT Logo" 
               style={{ 
-                height: '48px',
+                height: '53px',
                 marginBottom: '16px',
                 display: 'block',
-                margin: '0 auto 16px auto'
+                margin: '0 auto 16px auto',
+                imageRendering: 'crisp-edges',
               }} 
             />
             <Text type="secondary" style={{ display: 'block' }}>

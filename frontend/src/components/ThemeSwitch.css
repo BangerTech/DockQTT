@@ -1,0 +1,90 @@
+:root {
+  --lightPrimary: #d8dbe0;
+  --lightUnvisitedLink: #0000ee;
+  --lightVisitedLink: #551a8b;
+  --darkPrimary: #28292c;
+  --darkUnvisitedLink: #0cadff;
+  --darkVisitedLink: #dcd0ff;
+}
+
+/* Toggle Container */
+.toggle-container {
+    position: relative;
+}
+
+/* Toggle Base */
+.toggle {
+    width: 60px;
+    height: 30px;
+    background: linear-gradient(145deg, #28293e, #3a3b5e);
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    padding: 0.2rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Knob */
+.knob {
+    width: 25px;
+    height: 25px;
+    background: linear-gradient(145deg, #86A8E7, #91EAE4);
+    border-radius: 50%;
+    box-shadow: 0 5px 15px rgba(134, 168, 231, 0.5);
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Icon */
+.icon {
+    font-size: 14px;
+    color: #fff;
+}
+
+/* Toggle On State */
+.toggle.active {
+    background: linear-gradient(145deg, #11172B, #1A1F40);
+    box-shadow: 0 15px 35px rgba(0, 255, 233, 0.2);
+}
+
+/* Knob Active */
+.toggle.active .knob {
+    transform: translateX(30px);
+    background: linear-gradient(145deg, #91EAE4, #86A8E7);
+    box-shadow: 0 10px 20px rgba(91, 250, 238, 0.5);
+}
+
+/* Ripple Effect */
+.knob::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.toggle.active .knob::before {
+    animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.5);
+    }
+} 

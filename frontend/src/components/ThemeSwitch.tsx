@@ -1,7 +1,6 @@
 import React from 'react';
-import { Switch } from 'antd';
 import { SunOutlined, MoonOutlined } from '@ant-design/icons';
-import { theme } from 'antd';
+import './ThemeSwitch.css';
 
 interface ThemeSwitchProps {
   darkMode: boolean;
@@ -9,20 +8,17 @@ interface ThemeSwitchProps {
 }
 
 export const ThemeSwitch: React.FC<ThemeSwitchProps> = ({ darkMode, onChange }) => {
-  const { token } = theme.useToken();
-  
   return (
-    <Switch
-      checked={darkMode}
-      onChange={onChange}
-      checkedChildren={<MoonOutlined style={{ fontSize: '12px' }} />}
-      unCheckedChildren={<SunOutlined style={{ fontSize: '12px' }} />}
-      style={{
-        backgroundColor: darkMode ? token.colorPrimary : '#f0f0f0',
-        width: '56px',
-        height: '28px',
-      }}
-      className="theme-switch"
-    />
+    <div className="toggle-container">
+      <div className={`toggle ${darkMode ? 'active' : ''}`} onClick={() => onChange(!darkMode)}>
+        <div className="knob">
+          {darkMode ? (
+            <MoonOutlined className="icon" />
+          ) : (
+            <SunOutlined className="icon" />
+          )}
+        </div>
+      </div>
+    </div>
   );
 }; 
