@@ -3,7 +3,7 @@
   border-radius: 8px;
   padding: 16px;
   height: 100%;
-  overflow: auto;
+  overflow: visible;
 }
 
 .topic-node {
@@ -38,4 +38,21 @@
 
 .ant-tree-node-content-wrapper {
   width: 100%;
+}
+
+.ant-tree {
+  background: transparent !important;
+}
+
+.ant-tree-node-content-wrapper,
+.ant-tree-title {
+  background: var(--background-color) !important;
+}
+
+.ant-tree-node-content-wrapper:hover {
+  background: var(--hover-bg) !important;
+}
+
+.ant-tree-node-selected {
+  background: var(--selected-bg) !important;
 } 

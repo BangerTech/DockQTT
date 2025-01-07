@@ -1,7 +1,10 @@
 .topic-details {
-  height: 100%;
+  height: calc(100vh - 112px);
   display: flex;
   flex-direction: column;
+  position: sticky;
+  top: 24px;
+  overflow: auto;
 }
 
 .json-payload {
@@ -25,4 +28,24 @@
   margin: 0;
   max-height: 100px;
   overflow: auto;
+}
+
+.topic-details::-webkit-scrollbar,
+.json-payload::-webkit-scrollbar,
+.ant-table-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.topic-details::-webkit-scrollbar-track,
+.json-payload::-webkit-scrollbar-track,
+.ant-table-body::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+.topic-details::-webkit-scrollbar-thumb,
+.json-payload::-webkit-scrollbar-thumb,
+.ant-table-body::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 4px;
 } 

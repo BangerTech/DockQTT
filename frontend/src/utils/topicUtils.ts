@@ -15,24 +15,49 @@ export function buildTopicTree(topicMessages: TopicMap): TopicNode[] {
 
     parts.forEach((part, index) => {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
+      const isLeafNode = index === parts.length - 1;
+      const currentMessages = isLeafNode ? topicMessages[fullPath] : [];
       
       if (!currentLevel[currentPath]) {
-        const messages = index === parts.length - 1 ? topicMessages[fullPath] : [];
         currentLevel[currentPath] = {
           name: part,
           path: currentPath,
           children: {},
-          messages,
-          unreadCount: messages.length,
-          lastUpdate: messages[0]?.timestamp ? new Date(messages[0].timestamp).getTime() : 0
+          messages: currentMessages,
+          unreadCount: currentMessages.length,
+          lastUpdate: currentMessages[0]?.timestamp ? new Date(currentMessages[0].timestamp).getTime() : 0,
+          type: detectTopicType(currentPath, currentMessages[0]?.payload)
         };
       }
+      
+      // Aktualisiere unreadCount für Eltern-Topics
+      if (!isLeafNode && root[currentPath]) {
+        root[currentPath].unreadCount += topicMessages[fullPath].length;
+      }
+
       currentLevel = currentLevel[currentPath].children;
     });
   }
 
   return convertToArray(root);
 }
+
+// Erkennt den Typ des Topics basierend auf Pfad und Payload
+export function detectTopicType(path: string, payload: any): TopicType {
+  if (path.includes('/switch') || path.includes('/relay')) return 'switch';
+  if (path.includes('/sensor') || path.includes('/temperature')) return 'sensor';
+  if (path.includes('/status')) return 'status';
+  if (path.includes('/config')) return 'config';
+  if (path.includes('/availability')) return 'availability';
+  
+  if (typeof payload === 'boolean') return 'boolean';
+  if (typeof payload === 'number') return 'number';
+  if (typeof payload === 'object') return 'json';
+  
+  return 'text';
+}
+
+export type TopicType = 'switch' | 'sensor' | 'status' | 'config' | 'availability' | 'boolean' | 'number' | 'json' | 'text';
 
 export function formatTopicValue(message: MqttMessage): string {
   if (!message) return '';

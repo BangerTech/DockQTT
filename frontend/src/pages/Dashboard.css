@@ -5,39 +5,83 @@
 .dashboard-header {
   background: var(--background-color);
   padding: 0 24px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  height: 64px;
 }
 
-.header-left {
+.header-section {
   display: flex;
   align-items: center;
   gap: 16px;
 }
 
-.header-logo {
-  height: 32px;
-  width: auto;
+/* Linke Seite */
+.header-section:first-child {
+  justify-content: flex-start;
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 24px;
+/* Rechte Seite */
+.header-section:last-child {
+  justify-content: flex-end;
 }
 
-.connection-status {
+.connection-info {
   display: flex;
   align-items: center;
   gap: 8px;
   color: inherit;
+  font-size: 14px;
+}
+
+.connection-icon {
+  font-size: 16px;
+}
+
+.connection-icon.connected {
+  color: #52c41a;
+}
+
+.connection-icon.disconnected {
+  color: #ff4d4f;
+}
+
+.connection-separator {
+  color: var(--text-secondary);
+  margin: 0 8px;
+}
+
+.broker-details {
+  font-family: monospace;
+  color: var(--text-secondary);
+}
+
+.disconnect-button {
+  padding: 4px 8px;
+  height: auto;
+}
+
+/* Logo im Zentrum */
+.header-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.header-logo {
+  height: 48px; /* Noch größeres Logo */
+  width: auto;
+  image-rendering: -webkit-optimize-contrast; /* Für Chrome/Safari */
+  image-rendering: crisp-edges; /* Für Firefox */
+  -ms-interpolation-mode: nearest-neighbor; /* Für IE */
 }
 
 .dashboard-content {
   padding: 24px;
-  height: calc(100vh - 64px);
+  min-height: calc(100vh - 64px);
+  background: var(--background-color);
 }
 
 .no-topic-selected {
@@ -50,4 +94,28 @@
   background: var(--background-color);
   border-radius: 8px;
   padding: 24px;
+}
+
+/* Verbesserte Scrollbar für die gesamte Seite */
+body::-webkit-scrollbar {
+  width: 8px;
+}
+
+body::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+body::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 4px;
+}
+
+/* Stelle sicher, dass die Spalten korrekt scrollen */
+.ant-row {
+  height: 100%;
+}
+
+.ant-col {
+  height: 100%;
+  overflow: auto;
 } 

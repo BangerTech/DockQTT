@@ -67,33 +67,47 @@ export const Dashboard: React.FC = () => {
   return (
     <Layout className="dashboard-layout">
       <Header className="dashboard-header">
-        <div className="header-left">
+        <div className="header-section">
+          <div className="connection-info">
+            {connected ? (
+              <WifiOutlined className="connection-icon connected" />
+            ) : (
+              <DisconnectOutlined className="connection-icon disconnected" />
+            )}
+            <span className="connection-status">
+              {connected ? 'Connected' : 'Disconnected'}
+            </span>
+            {currentConnection && (
+              <>
+                <span className="connection-separator">|</span>
+                <span className="broker-details">
+                  {currentConnection.url}:{currentConnection.port}
+                </span>
+              </>
+            )}
+          </div>
+          <Button
+            type="text"
+            danger
+            icon={<DisconnectOutlined />}
+            onClick={handleDisconnect}
+            className="disconnect-button"
+          />
+        </div>
+
+        <div className="header-logo-container">
           <img 
             src={dockqttLogo} 
             alt="DockQTT Logo" 
             className="header-logo"
           />
-          <Title level={4} style={{ margin: 0, color: 'inherit' }}>
-            {currentConnection?.url}:{currentConnection?.port}
-          </Title>
         </div>
-        <div className="header-right">
-          <div className="connection-status">
-            {connected ? (
-              <WifiOutlined style={{ color: '#52c41a' }} />
-            ) : (
-              <DisconnectOutlined style={{ color: '#ff4d4f' }} />
-            )}
-            <span>{connected ? 'Connected' : 'Disconnected'}</span>
-          </div>
-          <ThemeSwitch darkMode={darkMode} onChange={setDarkMode} />
-          <Button 
-            danger
-            onClick={handleDisconnect}
-            icon={<DisconnectOutlined />}
-          >
-            Disconnect
-          </Button>
+
+        <div className="header-section">
+          <ThemeSwitch 
+            darkMode={darkMode} 
+            onChange={setDarkMode}
+          />
         </div>
       </Header>
       <Content className="dashboard-content">
