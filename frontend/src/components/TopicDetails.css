@@ -48,4 +48,32 @@
 .ant-table-body::-webkit-scrollbar-thumb {
   background: var(--text-secondary);
   border-radius: 4px;
+}
+
+.sensor-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2em;
+}
+
+.sensor-icon {
+  font-size: 1.5em;
+  opacity: 0.7;
+}
+
+.value {
+  font-weight: 500;
+}
+
+.unit {
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+.human-readable {
+  font-size: 1.1em;
+  padding: 8px;
+  background: var(--code-background);
+  border-radius: 4px;
 } 

@@ -1,0 +1,126 @@
+.welcome-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  background: var(--background-color);
+}
+
+.welcome-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--component-background);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.logo {
+  height: 48px;
+  width: auto;
+}
+
+.ant-tabs-nav {
+  margin-bottom: 24px !important;
+}
+
+.broker-status {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.ant-btn-group {
+  display: flex !important;
+}
+
+.ant-btn-group .ant-btn {
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-group .ant-btn:first-child {
+  border-top-left-radius: 6px !important;
+  border-bottom-left-radius: 6px !important;
+}
+
+.ant-btn-group .ant-btn:last-child {
+  border-top-right-radius: 6px !important;
+  border-bottom-right-radius: 6px !important;
+}
+
+.save-checkbox-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 1rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.save-checkbox-container:hover .save-checkbox-custom {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0.5rem var(--primary-color-shadow);
+}
+
+.save-checkbox-container input[type="checkbox"] {
+  display: none;
+}
+
+.save-checkbox-custom {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0.2rem solid var(--border-color);
+  background: var(--component-background);
+  border-radius: 0.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-checkbox-container input[type="checkbox"]:checked + .save-checkbox-custom {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  box-shadow: 0 0 1rem var(--primary-color-shadow);
+}
+
+.save-icon {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+.save-checkbox-container input[type="checkbox"]:checked + .save-checkbox-custom .save-icon {
+  color: #fff;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.save-checkbox-label {
+  font-size: 1rem;
+  color: var(--text-color);
+  transition: color 0.3s ease;
+}
+
+.save-checkbox-container:hover .save-checkbox-label {
+  color: var(--primary-color);
+}
+
+/* CSS-Variablen für das Theme */
+:root {
+  --primary-color: #1890ff;
+  --primary-color-shadow: rgba(24, 144, 255, 0.2);
+}
+
+[data-theme='dark'] {
+  --primary-color: #177ddc;
+  --primary-color-shadow: rgba(23, 125, 220, 0.2);
+} 

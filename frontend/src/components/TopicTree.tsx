@@ -15,6 +15,7 @@ interface TopicTreeProps {
 
 export const TopicTree: React.FC<TopicTreeProps> = ({ topics, onSelect, selectedTopic }) => {
   const [searchText, setSearchText] = useState('');
+  const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
 
   const filteredTreeData = useMemo(() => {
     function filterNodes(nodes: TopicNode[]): TopicNode[] {
@@ -78,11 +79,20 @@ export const TopicTree: React.FC<TopicTreeProps> = ({ topics, onSelect, selected
           placeholder="Search topics..."
           allowClear
           prefix={<SearchOutlined />}
-          onChange={e => setSearchText(e.target.value)}
+          onChange={e => {
+            setSearchText(e.target.value);
+            // Optional: Automatisch alle Nodes expandieren wenn gesucht wird
+            if (e.target.value) {
+              setExpandedKeys(topics.map(node => node.path));
+            } else {
+              setExpandedKeys([]);
+            }
+          }}
         />
         <Tree
           showLine
-          defaultExpandAll
+          expandedKeys={expandedKeys}
+          onExpand={(keys) => setExpandedKeys(keys as string[])}
           selectedKeys={selectedTopic ? [selectedTopic] : []}
           onSelect={(_, { node }) => onSelect(node.key as string)}
           treeData={treeData}

@@ -85,4 +85,40 @@ function convertToArray(node: { [key: string]: TopicNode }): TopicNode[] {
     ...n,
     children: convertToArray(n.children)
   }));
+}
+
+interface ValueTypeInfo {
+  type: string;
+  unit?: string;
+}
+
+export function detectValueType(path: string, value: any): ValueTypeInfo {
+  const pathLower = path.toLowerCase();
+  
+  if (pathLower.includes('temperature')) {
+    return { type: 'temperature', unit: '°C' };
+  }
+  if (pathLower.includes('humidity')) {
+    return { type: 'humidity', unit: '%' };
+  }
+  if (pathLower.includes('illuminance') || pathLower.includes('light')) {
+    return { type: 'illuminance', unit: 'lx' };
+  }
+  if (pathLower.includes('power')) {
+    return { type: 'power', unit: 'W' };
+  }
+  if (pathLower.includes('energy')) {
+    return { type: 'power', unit: 'kWh' };
+  }
+  if (pathLower.includes('pressure')) {
+    return { type: 'pressure', unit: 'hPa' };
+  }
+  if (pathLower.includes('rssi') || pathLower.includes('signal')) {
+    return { type: 'signal', unit: 'dBm' };
+  }
+  if (pathLower.includes('distance')) {
+    return { type: 'distance', unit: 'm' };
+  }
+  
+  return { type: 'generic' };
 } 
